@@ -137,6 +137,9 @@ public class PencilCupItem : TetrisShape
         {
             TransformToSpilledPencils(rotateRight);
 
+            if (AchievementManager.Instance != null)
+                AchievementManager.Instance.UnlockAchievement("spill_pencils");
+
             if (!CanMove(Vector2.zero))
             {
                 Debug.Log("Стакан с карандашами: Нельзя разместить рассыпанные карандаши - откат");

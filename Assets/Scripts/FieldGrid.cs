@@ -54,6 +54,105 @@ public class FieldGrid : MonoBehaviour
         Debug.Log($"FieldGrid смещение: {fieldOffset}");
         Debug.Log($"FieldGrid масштаб: {fieldScale}");
     }
+    private void CheckAchievements(TetrisShape shape, bool isOnTable, bool isOnComputer,
+                               bool computerTouchesTable, bool emptyCupOnTable,
+                               bool emptyCupItemOnTable, bool isBookStack,
+                               bool isOnBookStack, bool isAdjacentToBookStack,
+                               bool isOnChair, bool isChair)
+    {
+        if (AchievementManager.Instance == null) return;
+
+        // 1. Кресло рядом со столом (фиксация кресла ИЛИ стола)
+        if (isChair)
+        {
+            if (IsChairAdjacentToTable())
+                AchievementManager.Instance.UnlockAchievement("chair_next_to_table");
+        }
+        else if (shape is TableItem)
+        {
+            // Проверка, что блок стола касается кресла
+            bool tableAdjacentToChair = false;
+            foreach (Transform block in currentBlocksToProcess)
+            {
+                Vector2Int pos = WorldToGridPosition(block.position);
+                if (IsTableBlockAdjacentToChair(pos.x, pos.y))
+                {
+                    tableAdjacentToChair = true;
+                    break;
+                }
+            }
+            if (tableAdjacentToChair)
+                AchievementManager.Instance.UnlockAchievement("chair_next_to_table");
+        }
+
+        // 2. Кружка (непролитая) на компьютере
+        if (shape is CupItem && isOnComputer)
+        {
+            var cup = shape as CupItem;
+            bool isFlipped = (bool)typeof(CupItem).GetField("isFlipped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(cup);
+            if (!isFlipped)
+                AchievementManager.Instance.UnlockAchievement("cup_on_computer");
+        }
+
+        // 3. Пролитая кружка на компьютере
+        if (shape is CupItem && isOnComputer)
+        {
+            var cup = shape as CupItem;
+            bool isFlipped = (bool)typeof(CupItem).GetField("isFlipped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(cup);
+            if (isFlipped)
+                AchievementManager.Instance.UnlockAchievement("spilled_cup_on_computer");
+        }
+
+        // 4. Стопка книг на столе
+        if (shape is BookStackItem && isOnTable)
+            AchievementManager.Instance.UnlockAchievement("bookstack_on_table");
+
+        // 5. Стопка книг на стопку книг (вертикально)
+        if (shape is BookStackItem && isOnBookStack)
+            AchievementManager.Instance.UnlockAchievement("bookstack_on_bookstack");
+
+        // 6. Стопка книг рядом с другой стопкой (горизонтально)
+        if (shape is BookStackItem && isAdjacentToBookStack)
+            AchievementManager.Instance.UnlockAchievement("bookstack_adjacent");
+
+        // 7. Пустая кружка на столе
+        if (shape is EmptyCupItem && emptyCupItemOnTable)
+            AchievementManager.Instance.UnlockAchievement("empty_cup_on_table");
+
+        // 8. Пустой стакан на столе
+        if (shape is EmptyPencilCupItem && emptyCupOnTable)
+            AchievementManager.Instance.UnlockAchievement("empty_pencil_cup_on_table");
+
+        // 9. Стакан с карандашами на столе
+        if (shape is PencilCupItem && isOnTable)
+            AchievementManager.Instance.UnlockAchievement("pencil_cup_on_table");
+
+        // 10. Компьютер на столе
+        if (shape is ComputerItem && computerTouchesTable)
+            AchievementManager.Instance.UnlockAchievement("computer_on_table");
+
+        // 11. Карандаши на пустой стакан (вертикально)
+        if (shape is LoosePencilsItem)
+        {
+            LoosePencilsItem pencils = shape as LoosePencilsItem;
+            if (pencils != null && pencils.IsVerticalOrientation && IsOnEmptyCupForPencils())
+            {
+                AchievementManager.Instance.UnlockAchievement("pencils_on_empty_cup");
+            }
+        }
+    }
+
+    // Доп. метод для проверки карандашей на пустом стакане
+    private bool IsOnEmptyCupForPencils()
+    {
+        foreach (Transform block in currentBlocksToProcess)
+        {
+            Vector2Int pos = WorldToGridPosition(block.position);
+            if (pos.y > 0 && emptyCupBlocks.Contains(new Vector2Int(pos.x, pos.y - 1)))
+                return true;
+        }
+        return false;
+    }
 
     private Vector2Int WorldToGridPosition(Vector3 worldPos)
     {
@@ -555,6 +654,11 @@ public class FieldGrid : MonoBehaviour
                 CheckForItemsOnChair(shape);
             }
         }
+        // После блока проверок для стопки книг, кресел, столов и т.д.
+        CheckAchievements(shape, isOnTable, isOnComputer, computerTouchesTable,
+                          emptyCupOnTable, emptyCupItemOnTable, isBookStack,
+                          isOnBookStack, isAdjacentToBookStack, isOnChair,
+                          shape.GetType() == typeof(ChairItemL) || shape.GetType() == typeof(ChairItemJ));
 
         Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
         Destroy(shape.gameObject);

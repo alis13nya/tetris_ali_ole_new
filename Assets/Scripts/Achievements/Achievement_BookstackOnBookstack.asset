@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 870de5b2277e28a4190d2a52b7c5a861, type: 3}
+  m_Name: Achievement_BookstackOnBookstack
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementData
+  id: bookstack_on_bookstack
+  title: "\u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430"
+  description: "\u0421\u0442\u043E\u043F\u043A\u0430 \u043A\u043D\u0438\u0433 \u043D\u0430
+    \u0441\u0442\u043E\u043F\u043A\u0443 \u043A\u043D\u0438\u0433"
+  icon: {fileID: 0}
+  isPositive: 1

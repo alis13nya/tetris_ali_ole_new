@@ -137,6 +137,8 @@ public class CupItem : TetrisShape
         if (!isFlipped)
         {
             TransformToSpilledCup(rotateRight);
+            if (AchievementManager.Instance != null)
+                AchievementManager.Instance.UnlockAchievement("spill_cup");
 
             if (!CanMove(Vector2.zero))
             {
