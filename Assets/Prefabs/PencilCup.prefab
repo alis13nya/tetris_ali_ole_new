@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &9023054278992346604
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6376656741216053968}
+  - component: {fileID: 6156371945222374326}
+  m_Layer: 0
+  m_Name: PencilCup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6376656741216053968
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9023054278992346604}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.95, y: 0.95, z: 0.95}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6156371945222374326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9023054278992346604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c67a19aaaf4059840add789a682acd19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PencilCupItem
+  blocks: []
+  shapeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockPrefab: {fileID: 9077802966353536098, guid: 6d23334d4385b53418d3cdc612ca82c1, type: 3}
+  pencilCupBottomPrefab: {fileID: 3473406984730366810, guid: 625b8f86bf5392f4688dc5932a72abc7, type: 3}
+  pencilCupTopPrefab: {fileID: 7665340870535425360, guid: 749df14852df7d6468233f8fac1d65fd, type: 3}
+  spilledRight1Prefab: {fileID: 1185711417493496979, guid: 763a5cfdfbbb1c5408ba44d28b24f49f, type: 3}
+  spilledRight2Prefab: {fileID: 248400653063771097, guid: b63fb6ac4b448eb44be87c47519da5da, type: 3}
+  spilledRight3Prefab: {fileID: 8910694006909745640, guid: 6f9da6eaf792e074ca57583c211c4378, type: 3}
+  spilledLeft1Prefab: {fileID: 4160637396344314578, guid: 1b0dbe43bda46ba408b269a732a16dd1, type: 3}
+  spilledLeft2Prefab: {fileID: 8473023796350590151, guid: e11fcbd25e2247c48b1ec8e7bd32d77a, type: 3}
+  spilledLeft3Prefab: {fileID: 2698350455873919273, guid: 1fb3c0bfe1a6fe74c9872fb29ce4abc0, type: 3}

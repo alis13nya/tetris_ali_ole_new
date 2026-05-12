@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2519934562876702204
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8893030463239212976}
+  - component: {fileID: 3197129513146754416}
+  m_Layer: 0
+  m_Name: CupItem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8893030463239212976
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2519934562876702204}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.95, y: 0.95, z: 0.95}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3197129513146754416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2519934562876702204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6cdcef1109beaaf4c8f6b8d2da2c0769, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CupItem
+  blocks: []
+  shapeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockPrefab: {fileID: 9077802966353536098, guid: 6d23334d4385b53418d3cdc612ca82c1, type: 3}
+  normalCupPrefab: {fileID: 1686049094072735502, guid: a7e5af257e8546942b677c5f3a3433f1, type: 3}
+  spilledRight1Prefab: {fileID: 1018499057528229064, guid: 6c1d7c09c931bb047942307417fd21e4, type: 3}
+  spilledRight2Prefab: {fileID: 8297941221056418343, guid: 1b8081a8bf37b374389e7ba4e1b3314f, type: 3}
+  spilledRight3Prefab: {fileID: 5658364214341016724, guid: 67e5626b793a96944863f9d028842780, type: 3}
+  spilledLeft1Prefab: {fileID: 8297941221056418343, guid: 2652334d0d31e4d4ead77b970087a7e8, type: 3}
+  spilledLeft2Prefab: {fileID: 5658364214341016724, guid: 80aca76e8d2ee5a428a38b8da002d11f, type: 3}
+  spilledLeft3Prefab: {fileID: 1018499057528229064, guid: 13bd09eff0893da4bb1b723f95d909fa, type: 3}

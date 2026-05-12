@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3641951007810755622
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7236011380196469233}
+  - component: {fileID: 5178147101017887531}
+  m_Layer: 0
+  m_Name: BookStack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7236011380196469233
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3641951007810755622}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.95, y: 0.95, z: 0.95}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5178147101017887531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3641951007810755622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a304c4f206512b34f86ad3a785b2b23a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BookStackItem
+  blocks: []
+  shapeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockPrefab: {fileID: 0}
+  bookBottomPrefab: {fileID: 1739994602283518389, guid: e881d71f7a7ec394cb23bd7698ee9bc6, type: 3}
+  bookMiddle1Prefab: {fileID: 3119702610757546361, guid: c51427aad5d7829499014c96fef48151, type: 3}
+  bookMiddle2Prefab: {fileID: 2618260188710268617, guid: 8c7921f1b9606f14aac47df78627e85b, type: 3}
+  bookTopPrefab: {fileID: 3886045133527138806, guid: a6f1df2c4dbfbd745aa201be1c6d43e2, type: 3}

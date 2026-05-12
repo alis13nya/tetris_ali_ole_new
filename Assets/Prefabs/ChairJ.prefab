@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4930980980347408638
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3710579537920686719}
+  - component: {fileID: 1344391809849366769}
+  m_Layer: 0
+  m_Name: ChairJ
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3710579537920686719
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4930980980347408638}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.95, y: 0.95, z: 0.95}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1344391809849366769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4930980980347408638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 778150e2e7814ea4d8e8af901fc2cd5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChairItemJ
+  blocks: []
+  shapeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockPrefab: {fileID: 0}
+  chairSeatPrefab: {fileID: 6759397096360758814, guid: b6a86ee67ff6cf14cb9161a66569dba9, type: 3}
+  chairBackPrefab: {fileID: 1248798568343719815, guid: 6dd3e37f123fb4f4ba9bfe7ed1eaf484, type: 3}
+  chairArmrestPrefab: {fileID: 1927297582642659197, guid: dfffb7d39d88c4549a9a5dec488f96e9, type: 3}
+  chairLegPrefab: {fileID: 8362723518770742553, guid: 53221bc524f142c428700679900960a1, type: 3}
