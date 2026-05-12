@@ -5,8 +5,8 @@
 /obj/
 /Build/
 /Builds/
-/Assets/AssetDatabaseTools/
 *.csproj
 *.sln
-*.userprefs
-.DS_Store 
+.DS_Store
+.vs/
+.utmp/
