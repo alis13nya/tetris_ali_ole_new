@@ -1,1 +1,12 @@
- 
+/Library/
+/Temp/
+/Logs/
+/UserSettings/
+/obj/
+/Build/
+/Builds/
+/Assets/AssetDatabaseTools/
+*.csproj
+*.sln
+*.userprefs
+.DS_Store 
