@@ -6,43 +6,37 @@ using System.Collections.Generic;
 public class AchievementsUI : MonoBehaviour
 {
     [Header("UI элементы")]
-    public GameObject achievementsPanel;      // Сама панель
-    public Transform contentParent;           // Родитель для элементов
-    public GameObject achievementItemPrefab;  // Префаб элемента достижения
-    public Button closeButton;                // Кнопка закрыть
-    public Button clearAllButton;             // Кнопка очистить всё
+    public GameObject achievementsPanel;
+    public Transform contentParent;
+    public GameObject achievementItemPrefab;
+    public Button closeButton;
+    public Button clearAllButton;
 
     [Header("Кнопка открытия")]
-    public Button openAchievementsButton;     // Кнопка "Достижения" в меню
-    public GameObject exclamationMark;        // Восклицательный знак
+    public Button openAchievementsButton;
+    public GameObject exclamationMark;
 
     private List<GameObject> spawnedItems = new List<GameObject>();
 
     void Start()
     {
-        // Открыть панель
         if (openAchievementsButton != null)
             openAchievementsButton.onClick.AddListener(OpenPanel);
 
-        // Закрыть панель
         if (closeButton != null)
             closeButton.onClick.AddListener(ClosePanel);
 
-        // Очистить все достижения
         if (clearAllButton != null)
             clearAllButton.onClick.AddListener(ClearAllAchievements);
 
-        // Изначально панель закрыта
         if (achievementsPanel != null)
             achievementsPanel.SetActive(false);
 
-        // Обновить восклицательный знак
         UpdateExclamationMark();
     }
 
     void OnEnable()
     {
-        // Обновляем знак каждый раз, когда объект активен
         UpdateExclamationMark();
     }
 
@@ -74,15 +68,27 @@ public class AchievementsUI : MonoBehaviour
             Destroy(item);
         spawnedItems.Clear();
 
-        if (AchievementManager.Instance == null) return;
+        if (AchievementManager.Instance == null)
+        {
+            Debug.LogWarning("AchievementManager.Instance == null");
+            return;
+        }
 
         var achievements = AchievementManager.Instance.GetAllAchievements();
+
+        if (achievements == null || achievements.Count == 0)
+        {
+            Debug.LogWarning("Нет достижений в AchievementManager");
+            return;
+        }
 
         foreach (var achievement in achievements)
         {
             bool isUnlocked = AchievementManager.Instance.IsUnlocked(achievement.id);
             CreateAchievementItem(achievement, isUnlocked);
         }
+
+        Debug.Log($"Создано элементов достижений: {spawnedItems.Count}");
     }
 
     void CreateAchievementItem(AchievementData data, bool isUnlocked)
@@ -92,48 +98,45 @@ public class AchievementsUI : MonoBehaviour
         GameObject item = Instantiate(achievementItemPrefab, contentParent);
         spawnedItems.Add(item);
 
-        // Иконка
-        Image icon = item.transform.Find("Icon")?.GetComponent<Image>();
-        if (icon != null && data.icon != null)
-            icon.sprite = data.icon;
-
-        // Название
-        TextMeshProUGUI titleText = item.transform.Find("Title")?.GetComponent<TextMeshProUGUI>();
-        if (titleText != null)
-            titleText.text = data.title;
-
-        // Описание
-        TextMeshProUGUI descText = item.transform.Find("Description")?.GetComponent<TextMeshProUGUI>();
-        if (descText != null)
-            descText.text = data.description;
-
-        // Статус (замочек/галочка)
-        Image statusImage = item.transform.Find("Status")?.GetComponent<Image>();
-        if (statusImage != null)
+        // Иконка статуса (замочек/галочка) - ищем по имени "StatusIcon"
+        Image statusIcon = item.transform.Find("StatusIcon")?.GetComponent<Image>();
+        if (statusIcon != null)
         {
-            if (isUnlocked)
-            {
-                // Можно поставить иконку галочки
-                statusImage.color = Color.green;
-            }
-            else
-            {
-                // Иконка замка
-                statusImage.color = Color.gray;
-            }
+            statusIcon.color = isUnlocked ? Color.green : Color.gray;
         }
 
-        // Цвет фона в зависимости от типа достижения
+        // Иконка достижения - ищем по имени "AchievementIcon"
+        Image achievementIcon = item.transform.Find("AchievementIcon")?.GetComponent<Image>();
+        if (achievementIcon != null && data.icon != null && isUnlocked)
+        {
+            achievementIcon.sprite = data.icon;
+        }
+
+        // Название - ищем по имени "TitleText"
+        TextMeshProUGUI titleText = item.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
+        if (titleText != null)
+        {
+            titleText.text = isUnlocked ? data.title : "???";
+        }
+
+        // Описание - ищем по имени "DescriptionText"
+        TextMeshProUGUI descText = item.transform.Find("DescriptionText")?.GetComponent<TextMeshProUGUI>();
+        if (descText != null)
+        {
+            descText.text = isUnlocked ? data.description : "???";
+        }
+
+        // Цвет фона
         Image background = item.GetComponent<Image>();
         if (background != null)
         {
             if (isUnlocked)
             {
-                background.color = data.isPositive ? new Color(0.2f, 0.8f, 0.2f, 0.5f) : new Color(0.8f, 0.3f, 0.3f, 0.5f);
+                background.color = data.isPositive ? new Color(0.2f, 0.7f, 0.2f, 0.8f) : new Color(0.7f, 0.2f, 0.2f, 0.8f);
             }
             else
             {
-                background.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+                background.color = new Color(0.3f, 0.3f, 0.3f, 0.6f);
             }
         }
     }
@@ -151,7 +154,7 @@ public class AchievementsUI : MonoBehaviour
         if (AchievementManager.Instance != null)
         {
             AchievementManager.Instance.ResetAllAchievements();
-            PopulateAchievementsList(); // Обновляем список
+            PopulateAchievementsList();
             UpdateExclamationMark();
         }
     }
