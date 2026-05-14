@@ -119,19 +119,7 @@ public class AchievementsUI : MonoBehaviour
             descText.text = isUnlocked ? data.description : "???";
         }
 
-        // Фон - единый для всех, без цветового кодирования
-        Image background = item.GetComponent<Image>();
-        if (background != null)
-        {
-            if (isUnlocked)
-            {
-                background.color = new Color(0.25f, 0.25f, 0.25f, 0.8f); // Тёмно-серый
-            }
-            else
-            {
-                background.color = new Color(0.15f, 0.15f, 0.15f, 0.6f); // Ещё темнее
-            }
-        }
+        
     }
 
     void UpdateExclamationMark()
