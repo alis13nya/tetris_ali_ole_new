@@ -510,10 +510,10 @@ RectTransform:
   - {fileID: 1950608113}
   - {fileID: 201867932}
   - {fileID: 1214724433}
-  - {fileID: 296101630}
   - {fileID: 2039550025}
   - {fileID: 2061159841}
   - {fileID: 1648163165}
+  - {fileID: 296101630}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -936,6 +936,67 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &649164000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 649164002}
+  - component: {fileID: 649164001}
+  m_Layer: 0
+  m_Name: AchievementManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &649164001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 649164000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85053a9fad71d20438a8377a2d8b1eec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
+  allAchievements:
+  - {fileID: 11400000, guid: 8a0270dbb6f5cd34ca39a6e090b65f68, type: 2}
+  - {fileID: 11400000, guid: 15d79774c47cb2946a3b8148b9896a4b, type: 2}
+  - {fileID: 11400000, guid: 513112e4c5bec2e4cbeddaebc5172dd8, type: 2}
+  - {fileID: 11400000, guid: a67e4fd590c3e834faf9497a5ecd8f57, type: 2}
+  - {fileID: 11400000, guid: bf1b7187d9d0db14b8a86cb4480d45de, type: 2}
+  - {fileID: 11400000, guid: 805a23e0853fb4846b1a7628dc5b6800, type: 2}
+  - {fileID: 11400000, guid: 1556679c9ca7e8c48af35d9e78f88726, type: 2}
+  - {fileID: 11400000, guid: fbecdaf25e74be742ace8f9e3d1f16d4, type: 2}
+  - {fileID: 11400000, guid: 8938756b3796d394c849fde26a4d518d, type: 2}
+  - {fileID: 11400000, guid: 8c2c85390e2c1b44d9c2934a6a791031, type: 2}
+  - {fileID: 11400000, guid: d131b5c59e91735439c19f4941f846c6, type: 2}
+  - {fileID: 11400000, guid: 3a0f837aa4da1394ba82dadbbbc44fc7, type: 2}
+  - {fileID: 11400000, guid: af423d06a1682c04f9ad4e8cdee06055, type: 2}
+  - {fileID: 11400000, guid: b5ea540621372584d937f9971df60b6c, type: 2}
+  - {fileID: 11400000, guid: 076206a0fb02cdb4b8ba7fc85a8a1db5, type: 2}
+  - {fileID: 11400000, guid: 187b6ca872dff024ab88ea2ed1928788, type: 2}
+--- !u!4 &649164002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 649164000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &680092151
 GameObject:
   m_ObjectHideFlags: 0
@@ -2266,63 +2327,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1479355266}
   m_CullTransparentMesh: 1
---- !u!1 &1482986877
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1482986879}
-  - component: {fileID: 1482986878}
-  m_Layer: 0
-  m_Name: AchievementManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1482986878
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1482986877}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85053a9fad71d20438a8377a2d8b1eec, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
-  allAchievements:
-  - {fileID: 11400000, guid: 428995ede6c1860419bfc3c42760940e, type: 2}
-  - {fileID: 11400000, guid: 513112e4c5bec2e4cbeddaebc5172dd8, type: 2}
-  - {fileID: 11400000, guid: 15d79774c47cb2946a3b8148b9896a4b, type: 2}
-  - {fileID: 11400000, guid: a67e4fd590c3e834faf9497a5ecd8f57, type: 2}
-  - {fileID: 11400000, guid: bf1b7187d9d0db14b8a86cb4480d45de, type: 2}
-  - {fileID: 11400000, guid: 805a23e0853fb4846b1a7628dc5b6800, type: 2}
-  - {fileID: 11400000, guid: fbecdaf25e74be742ace8f9e3d1f16d4, type: 2}
-  - {fileID: 11400000, guid: 8938756b3796d394c849fde26a4d518d, type: 2}
-  - {fileID: 11400000, guid: 3a0f837aa4da1394ba82dadbbbc44fc7, type: 2}
-  - {fileID: 11400000, guid: af423d06a1682c04f9ad4e8cdee06055, type: 2}
-  - {fileID: 11400000, guid: b5ea540621372584d937f9971df60b6c, type: 2}
-  - {fileID: 11400000, guid: 187b6ca872dff024ab88ea2ed1928788, type: 2}
---- !u!4 &1482986879
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1482986877}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1501908719
 GameObject:
   m_ObjectHideFlags: 0
@@ -2578,7 +2582,7 @@ MonoBehaviour:
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
-    m_FadeDuration: 0.5
+    m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
     m_PressedSprite: {fileID: 0}
@@ -2660,6 +2664,7 @@ MonoBehaviour:
   powerScaleManager: {fileID: 1459341837}
   lidAnimator: {fileID: 823136947}
   button: {fileID: 1648163166}
+  animationDuration: 0
 --- !u!95 &1648163170
 Animator:
   serializedVersion: 7
@@ -3557,4 +3562,4 @@ SceneRoots:
   - {fileID: 1957570985}
   - {fileID: 1712305709}
   - {fileID: 1293670652}
-  - {fileID: 1482986879}
+  - {fileID: 649164002}

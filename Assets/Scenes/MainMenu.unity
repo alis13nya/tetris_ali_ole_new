@@ -203,18 +203,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
   allAchievements:
-  - {fileID: 11400000, guid: 428995ede6c1860419bfc3c42760940e, type: 2}
-  - {fileID: 11400000, guid: 513112e4c5bec2e4cbeddaebc5172dd8, type: 2}
+  - {fileID: 11400000, guid: 8a0270dbb6f5cd34ca39a6e090b65f68, type: 2}
   - {fileID: 11400000, guid: 15d79774c47cb2946a3b8148b9896a4b, type: 2}
+  - {fileID: 11400000, guid: 513112e4c5bec2e4cbeddaebc5172dd8, type: 2}
   - {fileID: 11400000, guid: a67e4fd590c3e834faf9497a5ecd8f57, type: 2}
   - {fileID: 11400000, guid: bf1b7187d9d0db14b8a86cb4480d45de, type: 2}
   - {fileID: 11400000, guid: 805a23e0853fb4846b1a7628dc5b6800, type: 2}
+  - {fileID: 11400000, guid: 1556679c9ca7e8c48af35d9e78f88726, type: 2}
   - {fileID: 11400000, guid: fbecdaf25e74be742ace8f9e3d1f16d4, type: 2}
   - {fileID: 11400000, guid: 8938756b3796d394c849fde26a4d518d, type: 2}
   - {fileID: 11400000, guid: 8c2c85390e2c1b44d9c2934a6a791031, type: 2}
+  - {fileID: 11400000, guid: d131b5c59e91735439c19f4941f846c6, type: 2}
   - {fileID: 11400000, guid: 3a0f837aa4da1394ba82dadbbbc44fc7, type: 2}
   - {fileID: 11400000, guid: af423d06a1682c04f9ad4e8cdee06055, type: 2}
   - {fileID: 11400000, guid: b5ea540621372584d937f9971df60b6c, type: 2}
+  - {fileID: 11400000, guid: 076206a0fb02cdb4b8ba7fc85a8a1db5, type: 2}
   - {fileID: 11400000, guid: 187b6ca872dff024ab88ea2ed1928788, type: 2}
 --- !u!4 &139722797
 Transform:

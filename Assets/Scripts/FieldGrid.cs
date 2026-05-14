@@ -39,6 +39,16 @@ public class FieldGrid : MonoBehaviour
     // ДОБАВЛЯЕМ ПОЛЕ ДЛЯ ХРАНЕНИЯ ОБРАБАТЫВАЕМЫХ БЛОКОВ
     private List<Transform> currentBlocksToProcess = new List<Transform>();
 
+    private bool IsOnEmptyCupItem()
+    {
+        foreach (Transform block in currentBlocksToProcess)
+        {
+            Vector2Int pos = WorldToGridPosition(block.position);
+            if (pos.y > 0 && emptyCupItemBlocks.Contains(new Vector2Int(pos.x, pos.y - 1)))
+                return true;
+        }
+        return false;
+    }
     void Start()
     {
         powerScaleManager = FindObjectOfType<PowerScaleManager>();
@@ -139,6 +149,37 @@ public class FieldGrid : MonoBehaviour
             {
                 AchievementManager.Instance.UnlockAchievement("pencils_on_empty_cup");
             }
+        }
+        // Кружка с чаем на столе (непролитая)
+        if (shape is CupItem && isOnTable)
+        {
+            CupItem cup = shape as CupItem;
+            bool isFlipped = (bool)typeof(CupItem).GetField("isFlipped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(cup);
+            if (!isFlipped)
+                AchievementManager.Instance?.UnlockAchievement("cup_on_table");
+        }
+
+        // Пролитая кружка на столе
+        if (shape is CupItem && isOnTable)
+        {
+            CupItem cup = shape as CupItem;
+            bool isFlipped = (bool)typeof(CupItem).GetField("isFlipped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(cup);
+            if (isFlipped)
+                AchievementManager.Instance?.UnlockAchievement("spilled_cup_on_table");
+        }
+
+        // Карандаши в пустой кружке (вертикально)
+        if (shape is LoosePencilsItem && IsOnEmptyCupItem())
+        {
+            LoosePencilsItem pencils = shape as LoosePencilsItem;
+            if (pencils != null && pencils.IsVerticalOrientation)
+                AchievementManager.Instance?.UnlockAchievement("pencils_in_empty_cup");
+        }
+
+        // Стопка книг на кресле
+        if (shape is BookStackItem && isOnChair)
+        {
+            AchievementManager.Instance?.UnlockAchievement("bookstack_on_chair");
         }
     }
 

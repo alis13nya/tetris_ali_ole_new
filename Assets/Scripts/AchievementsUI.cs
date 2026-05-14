@@ -98,45 +98,38 @@ public class AchievementsUI : MonoBehaviour
         GameObject item = Instantiate(achievementItemPrefab, contentParent);
         spawnedItems.Add(item);
 
-        // Иконка статуса (замочек/галочка) - ищем по имени "StatusIcon"
-        Image statusIcon = item.transform.Find("StatusIcon")?.GetComponent<Image>();
-        if (statusIcon != null)
-        {
-            statusIcon.color = isUnlocked ? Color.green : Color.gray;
-        }
-
-        // Иконка достижения - ищем по имени "AchievementIcon"
+        // Иконка достижения (одна, называется AchievementIcon)
         Image achievementIcon = item.transform.Find("AchievementIcon")?.GetComponent<Image>();
         if (achievementIcon != null && data.icon != null && isUnlocked)
         {
             achievementIcon.sprite = data.icon;
         }
 
-        // Название - ищем по имени "TitleText"
+        // Название
         TextMeshProUGUI titleText = item.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
         if (titleText != null)
         {
             titleText.text = isUnlocked ? data.title : "???";
         }
 
-        // Описание - ищем по имени "DescriptionText"
+        // Описание
         TextMeshProUGUI descText = item.transform.Find("DescriptionText")?.GetComponent<TextMeshProUGUI>();
         if (descText != null)
         {
             descText.text = isUnlocked ? data.description : "???";
         }
 
-        // Цвет фона
+        // Фон - единый для всех, без цветового кодирования
         Image background = item.GetComponent<Image>();
         if (background != null)
         {
             if (isUnlocked)
             {
-                background.color = data.isPositive ? new Color(0.2f, 0.7f, 0.2f, 0.8f) : new Color(0.7f, 0.2f, 0.2f, 0.8f);
+                background.color = new Color(0.25f, 0.25f, 0.25f, 0.8f); // Тёмно-серый
             }
             else
             {
-                background.color = new Color(0.3f, 0.3f, 0.3f, 0.6f);
+                background.color = new Color(0.15f, 0.15f, 0.15f, 0.6f); // Ещё темнее
             }
         }
     }
