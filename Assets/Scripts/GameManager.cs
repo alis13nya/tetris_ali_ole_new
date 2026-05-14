@@ -652,7 +652,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadMainMenu()
     {
-        Debug.Log($"Загрузка главного меню: {mainMenuSceneName}");
+        Debug.Log("LoadMainMenu ВЫЗВАН");
 
         Time.timeScale = 1f;
         isPaused = false;

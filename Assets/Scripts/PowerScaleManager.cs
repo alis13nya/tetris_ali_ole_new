@@ -61,6 +61,7 @@ public class PowerScaleManager : MonoBehaviour
     private AudioSource audioSource;
     private bool isPowerReady = false;
 
+    public System.Action OnPowerReady;
     void Start()
     {
         fieldGrid = FindObjectOfType<FieldGrid>();
@@ -236,9 +237,9 @@ public class PowerScaleManager : MonoBehaviour
         isPowerReady = true;
         Debug.Log("Ўкала усилени€ заполнена! —пособность готова к использованию.");
 
-        if (fullScaleEffect != null)
-            fullScaleEffect.Play();
+        OnPowerReady?.Invoke();  // <-- эта строка должна быть
 
+        if (fullScaleEffect != null) fullScaleEffect.Play();
         if (fullScaleSound != null && audioSource != null)
             audioSource.PlayOneShot(fullScaleSound);
     }
