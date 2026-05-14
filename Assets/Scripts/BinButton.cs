@@ -7,58 +7,65 @@ public class BinButton : MonoBehaviour
     public PowerScaleManager powerScaleManager;
     public Animator lidAnimator;
     public Button button;
+    private Animator buttonAnimator;
+
+    [Header("Настройки")]
+    public float animationDuration = 0.5f;
 
     private void Start()
     {
-        // Если ссылка на кнопку не назначена, берём с этого же объекта
-        if (button == null)
-            button = GetComponent<Button>();
+        if (button == null) button = GetComponent<Button>();
+        if (powerScaleManager == null) powerScaleManager = FindObjectOfType<PowerScaleManager>();
 
-        // Если не назначен PowerScaleManager, ищем на сцене
-        if (powerScaleManager == null)
-            powerScaleManager = FindObjectOfType<PowerScaleManager>();
+        buttonAnimator = GetComponent<Animator>();
 
-        // Изначально кнопка неактивна (шкала пуста)
         if (button != null)
             button.interactable = false;
 
-        // Подписываемся на событие готовности шкалы
         if (powerScaleManager != null)
             powerScaleManager.OnPowerReady += EnableButton;
-
     }
 
     private void EnableButton()
     {
-        // Когда шкала заполнилась — активируем кнопку
         if (button != null)
             button.interactable = true;
+
+        // Включаем пульсацию
+        if (buttonAnimator != null)
+            buttonAnimator.SetBool("isReady", true);
     }
 
-    // Этот метод вызывается при нажатии на кнопку (через OnClick)
     public void OnButtonClick()
     {
-        // Проверяем, готова ли способность
         if (powerScaleManager == null || !powerScaleManager.IsPowerReady())
             return;
 
-        // Проигрываем анимацию крышки (один раз)
         if (lidAnimator != null)
         {
             lidAnimator.SetTrigger("OpenClose");
-        }
-
-        // Используем способность (удаляет нижнюю строку и сбрасывает шкалу)
-        powerScaleManager.UsePower();
-
-        // Деактивируем кнопку до следующего заполнения
-        if (button != null)
             button.interactable = false;
+
+            // Выключаем пульсацию
+            if (buttonAnimator != null)
+                buttonAnimator.SetBool("isReady", false);
+
+            // Удаляем строку после анимации
+            Invoke(nameof(ExecutePower), animationDuration);
+        }
+        else
+        {
+            ExecutePower();
+        }
+    }
+
+    private void ExecutePower()
+    {
+        powerScaleManager.UsePower();
     }
 
     private void OnDestroy()
     {
-        // Отписываемся от события, чтобы избежать ошибок
         if (powerScaleManager != null)
             powerScaleManager.OnPowerReady -= EnableButton;
     }
