@@ -117,17 +117,20 @@ public class FieldGrid : MonoBehaviour
         if (shape is BookStackItem && isOnTable)
             AchievementManager.Instance.UnlockAchievement("bookstack_on_table");
 
-        // 5. Стопка книг на стопку книг (вертикально)
-        if (shape is BookStackItem && isOnBookStack)
-            AchievementManager.Instance.UnlockAchievement("bookstack_on_bookstack");
-
-        // 6. Стопка книг рядом с другой стопкой (горизонтально)
-        if (shape is BookStackItem && isAdjacentToBookStack)
-            AchievementManager.Instance.UnlockAchievement("bookstack_adjacent");
+        // 5. Стопка книг на стопку книг ИЛИ рядом (объединённое достижение)
+        if (shape is BookStackItem && (isOnBookStack || isAdjacentToBookStack))
+            AchievementManager.Instance.UnlockAchievement("bookstack_stack");
 
         // 7. Пустая кружка на столе
-        if (shape is EmptyCupItem && emptyCupItemOnTable)
-            AchievementManager.Instance.UnlockAchievement("empty_cup_on_table");
+        if (shape is EmptyCupItem)
+        {
+            Debug.Log($"EmptyCupItem detected, emptyCupItemOnTable = {emptyCupItemOnTable}");
+            if (emptyCupItemOnTable)
+            {
+                Debug.Log("=== ПОПЫТКА ОТКРЫТЬ ДОСТИЖЕНИЕ: Пустая кружка на столе ===");
+                AchievementManager.Instance.UnlockAchievement("empty_cup_on_table");
+            }
+        }
 
         // 8. Пустой стакан на столе
         if (shape is EmptyPencilCupItem && emptyCupOnTable)
@@ -179,6 +182,7 @@ public class FieldGrid : MonoBehaviour
         // Стопка книг на кресле
         if (shape is BookStackItem && isOnChair)
         {
+            Debug.Log("=== ПОПЫТКА ОТКРЫТЬ ДОСТИЖЕНИЕ: Читательский уголок ===");
             AchievementManager.Instance?.UnlockAchievement("bookstack_on_chair");
         }
     }
@@ -309,6 +313,12 @@ public class FieldGrid : MonoBehaviour
                 int gridX = gridPos.x;
                 int gridY = gridPos.y;
 
+                // ===== ПЕРЕНЕСИ ЛОГИ СЮДА =====
+                Debug.Log($"Текущие блоки столов в tableBlocks: {string.Join(", ", tableBlocks)}");
+                Debug.Log($"Проверка стола: ищу стол на позиции ({gridX}, {gridY - 1})");
+                Debug.Log($"tableBlocks содержит {new Vector2Int(gridX, gridY - 1)}? = {tableBlocks.Contains(new Vector2Int(gridX, gridY - 1))}");
+                // ==============================
+
                 Debug.Log($"Блок пустой кружки: ({block.position.x:F2}, {block.position.y:F2}) -> Сетка: ({gridX}, {gridY})");
 
                 if (gridX >= 0 && gridX < 10 && gridY >= 0 && gridY < 20)
@@ -336,6 +346,13 @@ public class FieldGrid : MonoBehaviour
                         {
                             emptyCupItemOnTable = true;
                             Debug.Log($"Пустая кружка стоит на столе!");
+
+                            // ===== ДОБАВЬ ЗДЕСЬ =====
+                            if (AchievementManager.Instance != null)
+                            {
+                                AchievementManager.Instance.UnlockAchievement("empty_cup_on_table");
+                            }
+                            // ========================
                         }
                     }
                     else
@@ -414,6 +431,11 @@ public class FieldGrid : MonoBehaviour
                         {
                             emptyCupOnTable = true;
                             Debug.Log($"Пустой стакан стоит на столе!");
+
+                            if (AchievementManager.Instance != null)
+                            {
+                                AchievementManager.Instance.UnlockAchievement("empty_pencil_cup_on_table");
+                            }
                         }
                     }
                     else
@@ -505,12 +527,43 @@ public class FieldGrid : MonoBehaviour
                     {
                         bookStackBlocks.Add(new Vector2Int(gridX, gridY));
                         Debug.Log($"✓ Блок стопки книг зафиксирован на ({gridX}, {gridY})");
+                        
+                        // ===== ДОБАВЬ ЭТО =====
+                        // Проверка: стопка книг на столе
+                        if (IsOnTable(gridX, gridY))
+                        {
+                            isOnTable = true;
+                            Debug.Log($"Стопка книг стоит на столе!");
+                        }
+                        // ======================
 
+                        // ===== ДОБАВЬ ЭТИ ПРОВЕРКИ =====
+                        // Проверка: стоит ли на другой стопке книг
+                        if (IsOnBookStack(gridX, gridY))
+                        {
+                            isOnBookStack = true;
+                            Debug.Log($"Стопка книг стоит на другой стопке книг!");
+                        }
+
+                        // Проверка: рядом с другой стопкой книг
+                        if (IsAdjacentToBookStack(gridX, gridY))
+                        {
+                            isAdjacentToBookStack = true;
+                            Debug.Log($"Стопка книг стоит рядом с другой стопкой книг!");
+                        }
+                        // =============================
                         // Проверка: стопка книг на кресле
                         if (gridY > 0 && chairBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
                         {
                             bookStackOnChair = true;
                             Debug.Log($"Стопка книг стоит на кресле!");
+                        }
+                        // ===== ДОБАВЬ ЭТОТ БЛОК =====
+                        // Также проверяем, стоит ли этот блок на кресле для достижения
+                        if (gridY > 0 && chairBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+                        {
+                            isOnChair = true;  // <-- ЭТО ВАЖНО ДЛЯ ДОСТИЖЕНИЯ
+                            Debug.Log($"Блок стопки книг ({gridX}, {gridY}) стоит на кресле!");
                         }
                     }
                     else if (isChair)
