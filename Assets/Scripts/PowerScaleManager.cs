@@ -8,11 +8,6 @@ public class PowerScaleManager : MonoBehaviour
     public float currentFillAmount = 0f;
     public float maxFillAmount = 1f;
 
-    [Header("Режим кружков")]
-    public bool useOrbSystem = true; // Включить систему кружков
-    public SimplePowerOrbsManager powerOrbsManager; // Ссылка на менеджер кружков
-    public bool showProgressToNextOrb = true; // Показывать прогресс до следующего кружка
-
     [Header("Нейтральный блок (для замены предметов)")]
     public GameObject neutralBlockPrefab; // Префаб нейтрального блока
 
@@ -73,40 +68,21 @@ public class PowerScaleManager : MonoBehaviour
 
         if (powerScaleSlider != null)
         {
-            // Всегда показываем слайдер
             powerScaleSlider.gameObject.SetActive(true);
-
-            if (useOrbSystem && showProgressToNextOrb)
-            {
-                // Для кружков: шкала 0-0.333
-                powerScaleSlider.maxValue = 0.333f;
-            }
-            else
-            {
-                // Старый режим: шкала 0-1
-                powerScaleSlider.maxValue = maxFillAmount;
-            }
-
+            powerScaleSlider.maxValue = maxFillAmount;
             powerScaleSlider.value = currentFillAmount;
         }
 
-        // Всегда показываем fillImage
         if (fillImage != null)
         {
             fillImage.gameObject.SetActive(true);
         }
 
-        UpdateVisuals();
+        
     }
 
     void Update()
     {
-        if (useOrbSystem && powerOrbsManager != null)
-        {
-            // В режиме кружков автоматическая активация не нужна
-            // Заполнение кружков обрабатывается в SimplePowerOrbsManager
-            return;
-        }
 
         // Старая логика для обратной совместимости
         if (currentFillAmount >= maxFillAmount && !isPowerReady)
@@ -219,44 +195,6 @@ public class PowerScaleManager : MonoBehaviour
 
     private void ChangeFillAmount(float change, string message)
     {
-        if (useOrbSystem && powerOrbsManager != null)
-        {
-            // В режиме кружков
-            currentFillAmount += change;
-
-            // Для кружков currentFillAmount всегда в диапазоне 0-0.333
-            if (currentFillAmount >= 0.333f)
-            {
-                // Просто ограничиваем значение
-                currentFillAmount = 0.333f;
-            }
-            else if (currentFillAmount < 0f)
-            {
-                currentFillAmount = 0f;
-            }
-
-            // Обновляем UI
-            UpdateUI();
-
-            // Визуальные эффекты
-            if (change > 0)
-            {
-                if (increaseEffect != null)
-                    increaseEffect.Play();
-                if (increaseSound != null && audioSource != null)
-                    audioSource.PlayOneShot(increaseSound);
-            }
-            else if (change < 0)
-            {
-                if (decreaseEffect != null)
-                    decreaseEffect.Play();
-                if (decreaseSound != null && audioSource != null)
-                    audioSource.PlayOneShot(decreaseSound);
-            }
-
-            Debug.Log($"{message} | Шкала: {currentFillAmount * 100:F1}%");
-            return;
-        }
 
         // Старая логика для обратной совместимости
         if (isPowerReady) return;
@@ -273,7 +211,7 @@ public class PowerScaleManager : MonoBehaviour
         }
 
         UpdateUI();
-        UpdateVisuals();
+        
 
         if (change > 0)
         {
@@ -307,12 +245,7 @@ public class PowerScaleManager : MonoBehaviour
 
     public void UsePower()
     {
-        if (useOrbSystem && powerOrbsManager != null)
-        {
-            // В режиме кружков способность активируется через клик на кружок
-            Debug.Log("Используйте кружки для активации способности");
-            return;
-        }
+    
 
         if (!isPowerReady && !autoActivate) return;
 
@@ -627,66 +560,30 @@ public class PowerScaleManager : MonoBehaviour
         currentFillAmount = 0f;
         isPowerReady = false;
         UpdateUI();
-        UpdateVisuals();
+        
     }
 
     private void UpdateUI()
     {
         if (powerScaleSlider != null)
         {
-            if (useOrbSystem && showProgressToNextOrb)
-            {
-                // В режиме кружков показываем прогресс до следующего кружка (0-0.333)
-                powerScaleSlider.maxValue = 0.333f;
-                powerScaleSlider.value = currentFillAmount;
-            }
-            else
-            {
-                // Старый режим - полная шкала 0-1
-                powerScaleSlider.maxValue = maxFillAmount;
-                powerScaleSlider.value = currentFillAmount;
-            }
+            powerScaleSlider.maxValue = maxFillAmount;
+            powerScaleSlider.value = currentFillAmount;
         }
     }
 
-    private void UpdateVisuals()
-    {
-        if (fillImage != null)
-        {
-            if (useOrbSystem)
-            {
-                // В режиме кружков цвет зависит от заполнения
-                float fillPercent = currentFillAmount / 0.333f; // 0-1
-                fillImage.color = Color.Lerp(normalColor, fullColor, fillPercent);
-            }
-            else
-            {
-                fillImage.color = isPowerReady ? fullColor : normalColor;
-            }
-        }
-    }
-
+    
     public void SetFillAmount(float amount)
     {
         currentFillAmount = Mathf.Clamp(amount, 0f, maxFillAmount);
         UpdateUI();
-        UpdateVisuals();
+        
     }
 
     public bool IsPowerReady()
     {
-        if (useOrbSystem && powerOrbsManager != null)
-        {
-            // В режиме кружков - проверяем, есть ли заполненные кружки
-            return powerOrbsManager.GetFilledOrbsCount() > 0;
-        }
-
         return isPowerReady;
     }
 
-    // Публичный метод для удаления нижней строки (для вызова из SimplePowerOrbsManager)
-    public void RemoveBottomLinePublic()
-    {
-        RemoveBottomLine();
-    }
+    
 }
