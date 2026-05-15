@@ -2489,6 +2489,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e716f1de36cddd74fbc69a7e9891da47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FieldGrid
+  blockBreakParticle: {fileID: 3899981375311000202, guid: 327e6d2422f6f2d4e938dce43d7bb418, type: 3}
   fieldOffset: {x: -1.69, y: 2.7}
   fieldScale: {x: 1, y: 1}
   neutralBlockPrefab: {fileID: 9077802966353536098, guid: 7a49460295f6a8e4894e1118a79b5337, type: 3}

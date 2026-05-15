@@ -340,6 +340,14 @@ public class FieldGrid : MonoBehaviour
 
     public void LockShape(TetrisShape shape)
     {
+        // Если фигура — нейтральный блок, игнорируем
+        if (shape.GetComponent<NeutralBlockTag>() != null)
+        {
+            Debug.Log("Попытка зафиксировать нейтральный блок — игнорируем");
+            Destroy(shape.gameObject);
+            return;
+        }
+
         Debug.Log($"=== ФИКСАЦИЯ ФИГУРЫ {shape.name} ===");
 
         string itemId = $"Item_{shape.GetType().Name}_{itemCounter++}";
@@ -847,7 +855,13 @@ public class FieldGrid : MonoBehaviour
 
         if (gridY - 1 >= 0)
         {
-            if (chairBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+            Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
+
+            // Если под предметом нейтральный блок — не считаем креслом
+            if (IsNeutralBlock(belowPos.x, belowPos.y))
+                return false;
+
+            if (chairBlocks.Contains(belowPos))
             {
                 Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на кресле!");
                 return true;
@@ -1252,6 +1266,16 @@ public class FieldGrid : MonoBehaviour
             itemTypes[emptyItemId] = typeof(EmptyCupItem);
         }
     }
+    private bool IsNeutralBlock(int gridX, int gridY)
+    {
+        if (gridX < 0 || gridX >= 10 || gridY < 0 || gridY >= 20)
+            return false;
+
+        if (grid[gridX, gridY] == null)
+            return false;
+
+        return grid[gridX, gridY].GetComponent<NeutralBlockTag>() != null;
+    }
 
     // Вспомогательные методы проверки
     private bool IsOnTable(int gridX, int gridY)
@@ -1260,7 +1284,13 @@ public class FieldGrid : MonoBehaviour
 
         if (gridY - 1 >= 0)
         {
-            if (tableBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+            Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
+
+            // Если под предметом нейтральный блок — не считаем столом
+            if (IsNeutralBlock(belowPos.x, belowPos.y))
+                return false;
+
+            if (tableBlocks.Contains(belowPos))
             {
                 Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на столе!");
                 return true;
@@ -1276,7 +1306,12 @@ public class FieldGrid : MonoBehaviour
 
         if (gridY - 1 >= 0)
         {
-            if (computerBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+            Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
+
+            if (IsNeutralBlock(belowPos.x, belowPos.y))
+                return false;
+
+            if (computerBlocks.Contains(belowPos))
             {
                 Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на компьютере!");
                 return true;
@@ -1292,7 +1327,14 @@ public class FieldGrid : MonoBehaviour
 
         if (gridY - 1 >= 0)
         {
-            if (emptyCupBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+            Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
+
+            // ===== ДОБАВЬ ЭТО =====
+            if (IsNeutralBlock(belowPos.x, belowPos.y))
+                return false;
+            // =====================
+
+            if (emptyCupBlocks.Contains(belowPos))
             {
                 Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на пустом стакане!");
                 return true;
@@ -1308,7 +1350,14 @@ public class FieldGrid : MonoBehaviour
 
         if (gridY - 1 >= 0)
         {
-            if (emptyCupItemBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+            Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
+
+            // ===== ДОБАВЬ ЭТО =====
+            if (IsNeutralBlock(belowPos.x, belowPos.y))
+                return false;
+            // =====================
+
+            if (emptyCupItemBlocks.Contains(belowPos))
             {
                 Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на пустой кружке!");
                 return true;
@@ -1324,7 +1373,12 @@ public class FieldGrid : MonoBehaviour
 
         if (gridY - 1 >= 0)
         {
-            if (bookStackBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+            Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
+
+            if (IsNeutralBlock(belowPos.x, belowPos.y))
+                return false;
+
+            if (bookStackBlocks.Contains(belowPos))
             {
                 Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на стопке книг!");
                 return true;
@@ -1462,74 +1516,74 @@ public class FieldGrid : MonoBehaviour
 
         foreach (var block in newBookStackBlocks)
         {
-            if (block.y > 0 && chairBlocks.Contains(new Vector2Int(block.x, block.y - 1)))
+            if (block.y > 0)
             {
-                return true;
+                Vector2Int belowPos = new Vector2Int(block.x, block.y - 1);
+
+                // Дополнительная страховка
+                if (IsNeutralBlock(belowPos.x, belowPos.y))
+                    continue;
+
+                if (chairBlocks.Contains(belowPos))
+                {
+                    return true;
+                }
             }
         }
-
         return false;
     }
 
     // МЕТОД: Проверка стоит ли стопка книг на столе (физическое соприкосновение снизу)
     private bool IsBookStackOnTable()
     {
-        // Получаем текущую стопку книг (последнюю добавленную)
         var newBookStackBlocks = GetNewestBookStackBlocks();
-
         if (newBookStackBlocks.Count == 0) return false;
-
-        Debug.Log($"Проверка стоит ли стопка книг на столе. Новых блоков: {newBookStackBlocks.Count}");
 
         foreach (var newBlock in newBookStackBlocks)
         {
-            // Проверяем позицию ПОД текущим блоком
             if (newBlock.y > 0)
             {
                 Vector2Int belowPos = new Vector2Int(newBlock.x, newBlock.y - 1);
 
-                // Проверяем, есть ли стол ПОД текущим блоком
+                // ===== ДОБАВЬ ЭТО =====
+                if (IsNeutralBlock(belowPos.x, belowPos.y))
+                    continue; // пропускаем, если под книгой нейтральный блок
+                              // =====================
+
                 if (tableBlocks.Contains(belowPos))
                 {
-                    Debug.Log($"✓ Обнаружено: новый блок стопки книг ({newBlock.x}, {newBlock.y}) " +
-                             $"стоит на столе в позиции ({belowPos.x}, {belowPos.y})");
+                    Debug.Log($"Стопка книг стоит на столе!");
                     return true;
                 }
             }
         }
-
-        Debug.Log($"✗ Новая стопка книг не стоит на столе");
         return false;
     }
 
     // МЕТОД: Проверка стоит ли стопка книг на другой стопке книг (физическое соприкосновение снизу)
     private bool IsBookStackOnOtherBookStack()
     {
-        // Получаем текущую стопку книг (последнюю добавленную)
         var newBookStackBlocks = GetNewestBookStackBlocks();
-
         if (newBookStackBlocks.Count == 0) return false;
-
-        Debug.Log($"Проверка стоит ли стопка книг на другой стопке. Новых блоков: {newBookStackBlocks.Count}");
 
         foreach (var newBlock in newBookStackBlocks)
         {
-            // Проверяем позицию ПОД текущим блоком
             if (newBlock.y > 0)
             {
                 Vector2Int belowPos = new Vector2Int(newBlock.x, newBlock.y - 1);
 
-                // Проверяем, есть ли блок другой стопки книг ПОД текущим блоком
+                // ===== ДОБАВЬ ЭТО =====
+                if (IsNeutralBlock(belowPos.x, belowPos.y))
+                    continue; // пропускаем, если под книгой нейтральный блок
+                              // =====================
+
                 if (bookStackBlocks.Contains(belowPos) && !newBookStackBlocks.Contains(belowPos))
                 {
-                    Debug.Log($"✓ Обнаружено: новый блок ({newBlock.x}, {newBlock.y}) " +
-                             $"стоит на другой стопке книг в позиции ({belowPos.x}, {belowPos.y})");
+                    Debug.Log($"Стопка книг стоит на другой стопке книг!");
                     return true;
                 }
             }
         }
-
-        Debug.Log($"✗ Новая стопка книг не стоит на другой стопке книг");
         return false;
     }
 
@@ -1730,24 +1784,20 @@ public class FieldGrid : MonoBehaviour
 
     private void QuickClearAnimation(int y)
     {
-        // Мгновенно меняем визуал (без корутины)
+        // Сначала показываем частицы
         for (int x = 0; x < 10; x++)
         {
-            if (grid[x, y] != null)
+            if (grid[x, y] != null && blockBreakParticle != null)
             {
-                // Взрыв частиц
-                if (blockBreakParticle != null)
-                {
-                    ParticleSystem particles = Instantiate(blockBreakParticle, grid[x, y].transform.position, Quaternion.identity);
-                    particles.Play();
-                    Destroy(particles.gameObject, 1f);
-                }
-
-                // Мгновенное удаление (без плавности)
-                Destroy(grid[x, y]);
-                grid[x, y] = null;
+                ParticleSystem particles = Instantiate(blockBreakParticle, grid[x, y].transform.position, Quaternion.identity);
+                particles.Play();
+                Destroy(particles.gameObject, 1f);
             }
         }
+
+        // А теперь удаляем строку через ClearLine (она вызовет CheckItemIntegrity)
+        ClearLine(y);
+        MoveLinesDown(y);
     }
     private void ApplyGravity()
     {
@@ -1813,24 +1863,15 @@ public class FieldGrid : MonoBehaviour
         {
             while (IsLineComplete(y))
             {
-                // Эффект частиц
-                QuickClearAnimation(y);
-
-                // Физическое удаление строки и сдвиг вниз
-                ClearLine(y);
-                MoveLinesDown(y);
-
+                QuickClearAnimation(y);  // показывает частицы и вызывает ClearLine
                 linesCleared++;
-                // while продолжит проверять ту же строку y (там теперь другие блоки)
+                // while продолжит проверять ту же строку y
             }
         }
 
         if (linesCleared > 0)
-        {   // ===== ДОБАВЬ ЭТО =====
-            ApplyGravity();
-            // =====================
             Debug.Log($"Удалено линий: {linesCleared}");
-        }
+
         return linesCleared;
     }
 
@@ -1932,17 +1973,26 @@ public class FieldGrid : MonoBehaviour
             if (grid[pos.x, pos.y] != null)
             {
                 Vector3 worldPos = GridToWorldPosition(pos.x, pos.y);
-
                 Destroy(grid[pos.x, pos.y]);
 
                 GameObject neutralBlock = Instantiate(neutralBlockPrefab, worldPos, Quaternion.identity);
                 grid[pos.x, pos.y] = neutralBlock;
 
+                if (neutralBlock.GetComponent<NeutralBlockTag>() == null)
+                    neutralBlock.AddComponent<NeutralBlockTag>();
+
                 SpriteRenderer renderer = neutralBlock.GetComponent<SpriteRenderer>();
                 if (renderer != null)
-                {
                     renderer.color = new Color(255f, 255f, 255f, 1f);
-                }
+
+                // ===== УДАЛЯЕМ ИЗ ВСЕХ СПЕЦИАЛИЗИРОВАННЫХ ХЕШСЕТОВ =====
+                tableBlocks.Remove(pos);
+                computerBlocks.Remove(pos);
+                bookStackBlocks.Remove(pos);
+                emptyCupBlocks.Remove(pos);
+                emptyCupItemBlocks.Remove(pos);
+                chairBlocks.Remove(pos);
+                // ====================================================
 
                 blockToItemId.Remove(pos);
             }
