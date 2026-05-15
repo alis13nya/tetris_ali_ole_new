@@ -10,9 +10,11 @@ public class AchievementManager : MonoBehaviour
     public List<AchievementData> allAchievements;
 
     private Dictionary<string, bool> unlockedStates = new Dictionary<string, bool>();
+    private HashSet<string> viewedAchievements = new HashSet<string>();
     private bool hasUnviewedUnlocks = false;
 
-    private const string SAVE_KEY = "Achievements";
+    private const string SAVE_KEY_UNLOCKED = "AchievementsUnlocked";
+    private const string SAVE_KEY_VIEWED = "AchievementsViewed";
 
     void Awake()
     {
@@ -41,7 +43,13 @@ public class AchievementManager : MonoBehaviour
         }
 
         unlockedStates[id] = true;
-        hasUnviewedUnlocks = true;
+
+        // Новое достижение ещё не просмотрено
+        if (!viewedAchievements.Contains(id))
+        {
+            hasUnviewedUnlocks = true;
+        }
+
         Save();
 
         Debug.Log($"🏆 РАЗБЛОКИРОВАНО: {GetAchievementTitle(id)}");
@@ -51,6 +59,49 @@ public class AchievementManager : MonoBehaviour
     public bool IsUnlocked(string id)
     {
         return unlockedStates.ContainsKey(id) && unlockedStates[id];
+    }
+
+    // Проверить, просмотрено ли достижение
+    public bool IsViewed(string id)
+    {
+        return viewedAchievements.Contains(id);
+    }
+
+    // Отметить конкретное достижение как просмотренное
+    public void MarkAsViewed(string id)
+    {
+        if (!viewedAchievements.Contains(id))
+        {
+            viewedAchievements.Add(id);
+
+            // Проверяем, остались ли ещё непросмотренные достижения
+            bool anyUnviewed = false;
+            foreach (var unlocked in unlockedStates.Where(kvp => kvp.Value))
+            {
+                if (!viewedAchievements.Contains(unlocked.Key))
+                {
+                    anyUnviewed = true;
+                    break;
+                }
+            }
+            hasUnviewedUnlocks = anyUnviewed;
+
+            Save();
+        }
+    }
+
+    // Отметить все как просмотренные (старый метод для совместимости)
+    public void MarkAllAsViewed()
+    {
+        foreach (var unlocked in unlockedStates.Where(kvp => kvp.Value))
+        {
+            if (!viewedAchievements.Contains(unlocked.Key))
+            {
+                viewedAchievements.Add(unlocked.Key);
+            }
+        }
+        hasUnviewedUnlocks = false;
+        Save();
     }
 
     // Получить все достижения
@@ -65,17 +116,17 @@ public class AchievementManager : MonoBehaviour
         return hasUnviewedUnlocks;
     }
 
-    // Отметить как просмотренные (когда открыли панель)
+    // Отметить как просмотренные (когда открыли панель) — для совместимости
     public void MarkAsViewed()
     {
-        hasUnviewedUnlocks = false;
-        Save();
+        MarkAllAsViewed();
     }
 
     // Сбросить все достижения
     public void ResetAllAchievements()
     {
         unlockedStates.Clear();
+        viewedAchievements.Clear();
         hasUnviewedUnlocks = false;
         Save();
         Debug.Log("Все достижения сброшены");
@@ -83,23 +134,50 @@ public class AchievementManager : MonoBehaviour
 
     private void Load()
     {
-        string json = PlayerPrefs.GetString(SAVE_KEY, "{}");
-        var data = JsonUtility.FromJson<AchievementSaveData>(json);
-        if (data != null && data.unlocked != null)
+        // Загрузка разблокированных достижений
+        string unlockedJson = PlayerPrefs.GetString(SAVE_KEY_UNLOCKED, "{}");
+        var unlockedData = JsonUtility.FromJson<AchievementSaveData>(unlockedJson);
+        if (unlockedData != null && unlockedData.achievements != null)
         {
-            foreach (var id in data.unlocked)
+            foreach (var id in unlockedData.achievements)
                 unlockedStates[id] = true;
         }
-        hasUnviewedUnlocks = data.hasUnviewed;
+
+        // Загрузка просмотренных достижений
+        string viewedJson = PlayerPrefs.GetString(SAVE_KEY_VIEWED, "{}");
+        var viewedData = JsonUtility.FromJson<AchievementSaveData>(viewedJson);
+        if (viewedData != null && viewedData.achievements != null)
+        {
+            foreach (var id in viewedData.achievements)
+                viewedAchievements.Add(id);
+        }
+
+        // Проверяем, есть ли непросмотренные
+        hasUnviewedUnlocks = false;
+        foreach (var unlocked in unlockedStates.Where(kvp => kvp.Value))
+        {
+            if (!viewedAchievements.Contains(unlocked.Key))
+            {
+                hasUnviewedUnlocks = true;
+                break;
+            }
+        }
     }
 
     private void Save()
     {
-        var data = new AchievementSaveData();
-        data.unlocked = unlockedStates.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToList();
-        data.hasUnviewed = hasUnviewedUnlocks;
-        string json = JsonUtility.ToJson(data);
-        PlayerPrefs.SetString(SAVE_KEY, json);
+        // Сохраняем разблокированные
+        var unlockedData = new AchievementSaveData();
+        unlockedData.achievements = unlockedStates.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToList();
+        string unlockedJson = JsonUtility.ToJson(unlockedData);
+        PlayerPrefs.SetString(SAVE_KEY_UNLOCKED, unlockedJson);
+
+        // Сохраняем просмотренные
+        var viewedData = new AchievementSaveData();
+        viewedData.achievements = viewedAchievements.ToList();
+        string viewedJson = JsonUtility.ToJson(viewedData);
+        PlayerPrefs.SetString(SAVE_KEY_VIEWED, viewedJson);
+
         PlayerPrefs.Save();
     }
 
@@ -112,7 +190,6 @@ public class AchievementManager : MonoBehaviour
     [System.Serializable]
     private class AchievementSaveData
     {
-        public List<string> unlocked = new List<string>();
-        public bool hasUnviewed = false;
+        public List<string> achievements = new List<string>();
     }
 }

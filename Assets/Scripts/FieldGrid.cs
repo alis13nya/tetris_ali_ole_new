@@ -615,45 +615,56 @@ public class FieldGrid : MonoBehaviour
                     }
                     else if (isBookStack)
                     {
-                        bookStackBlocks.Add(new Vector2Int(gridX, gridY));
-                        Debug.Log($"✓ Блок стопки книг зафиксирован на ({gridX}, {gridY})");
-                        
-                        // ===== ДОБАВЬ ЭТО =====
-                        // Проверка: стопка книг на столе
-                        if (IsOnTable(gridX, gridY))
+                        // Сначала собираем позиции текущих блоков
+                        HashSet<Vector2Int> currentBlocksSet = new HashSet<Vector2Int>();
+                        foreach (Transform blk in currentBlocksToProcess)
                         {
-                            isOnTable = true;
-                            Debug.Log($"Стопка книг стоит на столе!");
-                        }
-                        // ======================
-
-                        // ===== ДОБАВЬ ЭТИ ПРОВЕРКИ =====
-                        // Проверка: стоит ли на другой стопке книг
-                        if (IsOnBookStack(gridX, gridY))
-                        {
-                            isOnBookStack = true;
-                            Debug.Log($"Стопка книг стоит на другой стопке книг!");
+                            Vector2Int pos = WorldToGridPosition(blk.position);
+                            currentBlocksSet.Add(pos);
                         }
 
-                        // Проверка: рядом с другой стопкой книг
-                        if (IsAdjacentToBookStack(gridX, gridY))
+                        // Проверяем взаимодействия до добавления в bookStackBlocks
+                        foreach (Transform blk in currentBlocksToProcess)
                         {
-                            isAdjacentToBookStack = true;
-                            Debug.Log($"Стопка книг стоит рядом с другой стопкой книг!");
+                            Vector2Int pos = WorldToGridPosition(blk.position);
+                            int gx = pos.x;
+                            int gy = pos.y;
+
+                            if (IsOnTable(gx, gy))
+                            {
+                                isOnTable = true;
+                                Debug.Log($"Стопка книг стоит на столе!");
+                            }
+
+                            // Проверяем, стоит ли на другой стопке книг (исключая текущую)
+                            if (gy > 0 && !currentBlocksSet.Contains(new Vector2Int(gx, gy - 1)) && bookStackBlocks.Contains(new Vector2Int(gx, gy - 1)))
+                            {
+                                isOnBookStack = true;
+                                Debug.Log($"Стопка книг стоит на другой стопке книг!");
+                            }
+
+                            // Проверяем, рядом ли с другой стопкой книг (исключая текущую)
+                            if ((gx > 0 && !currentBlocksSet.Contains(new Vector2Int(gx - 1, gy)) && bookStackBlocks.Contains(new Vector2Int(gx - 1, gy))) ||
+                                (gx < 9 && !currentBlocksSet.Contains(new Vector2Int(gx + 1, gy)) && bookStackBlocks.Contains(new Vector2Int(gx + 1, gy))))
+                            {
+                                isAdjacentToBookStack = true;
+                                Debug.Log($"Стопка книг стоит рядом с другой стопкой книг!");
+                            }
+
+                            if (gy > 0 && chairBlocks.Contains(new Vector2Int(gx, gy - 1)))
+                            {
+                                bookStackOnChair = true;
+                                Debug.Log($"Стопка книг стоит на кресле!");
+                                isOnChair = true;
+                            }
                         }
-                        // =============================
-                        // Проверка: стопка книг на кресле
-                        if (gridY > 0 && chairBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
+
+                        // Теперь добавляем блоки в bookStackBlocks
+                        foreach (Transform blk in currentBlocksToProcess)
                         {
-                            bookStackOnChair = true;
-                            Debug.Log($"Стопка книг стоит на кресле!");
-                        }
-                        // ===== ДОБАВЬ ЭТОТ БЛОК =====
-                        // Также проверяем, стоит ли этот блок на кресле для достижения
-                        if (gridY > 0 && chairBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
-                        {
-                            isOnChair = true;  // <-- ЭТО ВАЖНО ДЛЯ ДОСТИЖЕНИЯ
-                            Debug.Log($"Блок стопки книг ({gridX}, {gridY}) стоит на кресле!");
+                            Vector2Int pos = WorldToGridPosition(blk.position);
+                            bookStackBlocks.Add(pos);
+                            Debug.Log($"✓ Блок стопки книг зафиксирован на ({pos.x}, {pos.y})");
                         }
                     }
                     else if (isChair)
@@ -692,7 +703,7 @@ public class FieldGrid : MonoBehaviour
                             Debug.Log($"Обнаружено: блок стоит на стопке книг");
                         }
 
-                        if (IsAdjacentToBookStack(gridX, gridY))
+                        if (IsAdjacentToBookStack(gridX, gridY))  // ← 2 параметра  // ← добавить третий параметр
                         {
                             isAdjacentToBookStack = true;
                             Debug.Log($"Обнаружено: блок рядом с стопкой книг");
