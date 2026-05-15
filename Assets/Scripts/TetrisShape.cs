@@ -111,18 +111,53 @@ public class TetrisShape : MonoBehaviour
         }
     }
 
-    public virtual void Rotate()  // ДОБАВЬТЕ virtual!
+    public virtual void Rotate()
     {
+        // Сохраняем исходное состояние
         Vector3 oldPosition = transform.position;
         Quaternion oldRotation = transform.rotation;
 
+        // Пробуем повернуть
         transform.Rotate(0, 0, 90);
 
-        if (!CanMove(Vector2.zero))
+        // Проверяем, помещается ли фигура после поворота
+        if (CanMove(Vector2.zero))
         {
-            transform.position = oldPosition;
-            transform.rotation = oldRotation;
+            // Всё хорошо, оставляем
+            return;
         }
+
+        // Пробуем варианты смещения (wall kicks)
+        Vector2[] kickOffsets = new Vector2[]
+        {
+        Vector2.left,           // смещение влево
+        Vector2.right,          // смещение вправо
+        Vector2.up,             // смещение вверх
+        new Vector2(-1, -1),    // влево-вниз
+        new Vector2(1, -1),     // вправо-вниз
+        new Vector2(-2, 0),     // на две клетки влево
+        new Vector2(2, 0),      // на две клетки вправо
+        new Vector2(0, 1),      // вверх
+        };
+
+        foreach (Vector2 offset in kickOffsets)
+        {
+            // Смещаем фигуру
+            transform.position += new Vector3(offset.x, offset.y, 0);
+
+            if (CanMove(Vector2.zero))
+            {
+                // Нашли подходящее смещение — оставляем
+                return;
+            }
+
+            // Возвращаем обратно
+            transform.position -= new Vector3(offset.x, offset.y, 0);
+        }
+
+        // Ни одно смещение не подошло — откатываем вращение
+        transform.position = oldPosition;
+        transform.rotation = oldRotation;
     }
 
     public virtual void RotateLeft()
@@ -132,11 +167,24 @@ public class TetrisShape : MonoBehaviour
 
         transform.Rotate(0, 0, 90);
 
-        if (!CanMove(Vector2.zero))
+        if (CanMove(Vector2.zero)) return;
+
+        Vector2[] kickOffsets = new Vector2[]
         {
-            transform.position = oldPosition;
-            transform.rotation = oldRotation;
+        Vector2.left, Vector2.right, Vector2.up,
+        new Vector2(-1, -1), new Vector2(1, -1),
+        new Vector2(-2, 0), new Vector2(2, 0), new Vector2(0, 1)
+        };
+
+        foreach (Vector2 offset in kickOffsets)
+        {
+            transform.position += new Vector3(offset.x, offset.y, 0);
+            if (CanMove(Vector2.zero)) return;
+            transform.position -= new Vector3(offset.x, offset.y, 0);
         }
+
+        transform.position = oldPosition;
+        transform.rotation = oldRotation;
     }
 
     public virtual void RotateRight()
@@ -146,11 +194,24 @@ public class TetrisShape : MonoBehaviour
 
         transform.Rotate(0, 0, -90);
 
-        if (!CanMove(Vector2.zero))
+        if (CanMove(Vector2.zero)) return;
+
+        Vector2[] kickOffsets = new Vector2[]
         {
-            transform.position = oldPosition;
-            transform.rotation = oldRotation;
+        Vector2.left, Vector2.right, Vector2.up,
+        new Vector2(-1, -1), new Vector2(1, -1),
+        new Vector2(-2, 0), new Vector2(2, 0), new Vector2(0, 1)
+        };
+
+        foreach (Vector2 offset in kickOffsets)
+        {
+            transform.position += new Vector3(offset.x, offset.y, 0);
+            if (CanMove(Vector2.zero)) return;
+            transform.position -= new Vector3(offset.x, offset.y, 0);
         }
+
+        transform.position = oldPosition;
+        transform.rotation = oldRotation;
     }
 
     public bool CanMove(Vector2 direction)

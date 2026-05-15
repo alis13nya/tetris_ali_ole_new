@@ -1652,18 +1652,18 @@ public class FieldGrid : MonoBehaviour
 
         for (int y = 0; y < 20; y++)
         {
-            if (IsLineComplete(y))
+            // Пока строка полная — удаляем
+            while (IsLineComplete(y))
             {
                 ClearLine(y);
                 MoveLinesDown(y);
                 linesCleared++;
+                // После опускания проверяем ту же строку y (там теперь другие блоки)
             }
         }
 
         if (linesCleared > 0)
-        {
             Debug.Log($"Удалено линий: {linesCleared}");
-        }
 
         return linesCleared;
     }

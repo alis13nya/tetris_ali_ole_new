@@ -211,15 +211,15 @@ public class GameManager : MonoBehaviour
                 PencilCupItem pencilCup = currentShape as PencilCupItem;
                 if (pencilCup != null)
                 {
-                    pencilCup.SpillPencils(true);
+                    pencilCup.RotateLeft();  // ← было SpillPencils(true), стало RotateLeft()
                 }
                 else if (currentShape is CupItem cupItem)
                 {
-                    cupItem.SpillCup(true);
+                    cupItem.RotateLeft();     // ← было SpillCup(true), стало RotateLeft()
                 }
                 else
                 {
-                    currentShape.Rotate();
+                    currentShape.RotateLeft(); // ← было Rotate(), стало RotateLeft()
                 }
             }
         }

@@ -163,14 +163,186 @@ public class PencilCupItem : TetrisShape
     // ѕ≈–≈ќѕ–≈ƒ≈Ћ≈Ќ»≈ ¬–јў≈Ќ»я - –ј——џѕјЌ»≈
     public override void RotateLeft()
     {
-        Debug.Log("PencilCupItem: RotateLeft() - рассыпание влево");
-        SpillPencils(false);  // false = влево
+        Debug.Log("PencilCupItem: RotateLeft() - попытка рассыпани€ влево");
+
+        if (isSpilled)
+        {
+            // ”же рассыпана Ч обычное вращение
+            Vector3 oldPosition = transform.position;
+            Quaternion oldRotation = transform.rotation;
+
+            transform.Rotate(0, 0, 90);
+
+            if (CanMove(Vector2.zero)) return;
+
+            Vector2[] kickOffsets = new Vector2[]
+            {
+            Vector2.left, Vector2.right, Vector2.up,
+            new Vector2(-1, -1), new Vector2(1, -1),
+            new Vector2(-2, 0), new Vector2(2, 0), new Vector2(0, 1)
+            };
+
+            foreach (Vector2 offset in kickOffsets)
+            {
+                transform.position += new Vector3(offset.x, offset.y, 0);
+                if (CanMove(Vector2.zero)) return;
+                transform.position -= new Vector3(offset.x, offset.y, 0);
+            }
+
+            transform.position = oldPosition;
+            transform.rotation = oldRotation;
+            return;
+        }
+
+        // ≈щЄ не рассыпана Ч нужно рассыпать влево
+        Vector3 oldPos = transform.position;
+        Quaternion oldRot = transform.rotation;
+
+        // ¬ременно превращаем в рассыпанную (без проверок)
+        TransformToSpilledPencils(false);
+
+        Vector2[] wallKicks = new Vector2[]
+        {
+        Vector2.zero,
+        Vector2.left,
+        Vector2.right,
+        Vector2.up,
+        new Vector2(-1, -1),
+        new Vector2(1, -1),
+        new Vector2(-2, 0),
+        new Vector2(2, 0),
+        new Vector2(0, 1)
+        };
+
+        bool success = false;
+        Vector2 successfulOffset = Vector2.zero;
+
+        foreach (Vector2 offset in wallKicks)
+        {
+            transform.position = oldPos + new Vector3(offset.x, offset.y, 0);
+
+            if (CanMove(Vector2.zero))
+            {
+                success = true;
+                successfulOffset = offset;
+                break;
+            }
+        }
+
+        if (success)
+        {
+            // ѕримен€ем рассыпание с найденным смещением
+            InitializeAsCup();
+            transform.position = oldPos;
+            transform.rotation = oldRot;
+
+            TransformToSpilledPencils(false);
+            transform.position = oldPos + new Vector3(successfulOffset.x, successfulOffset.y, 0);
+
+            Debug.Log($"PencilCupItem: рассыпана влево со смещением {successfulOffset}");
+
+            // ќтмечаем достижение
+            if (AchievementManager.Instance != null)
+                AchievementManager.Instance.UnlockAchievement("spill_pencils");
+        }
+        else
+        {
+            // Ќе помещаетс€ Ч откатываем
+            InitializeAsCup();
+            transform.position = oldPos;
+            transform.rotation = oldRot;
+            Debug.Log("PencilCupItem: рассыпание влево невозможно");
+        }
     }
 
     public override void RotateRight()
     {
-        Debug.Log("PencilCupItem: RotateRight() - рассыпание вправо");
-        SpillPencils(true);   // true = вправо
+        Debug.Log("PencilCupItem: RotateRight() - попытка рассыпани€ вправо");
+
+        if (isSpilled)
+        {
+            // ”же рассыпана Ч обычное вращение
+            Vector3 oldPosition = transform.position;
+            Quaternion oldRotation = transform.rotation;
+
+            transform.Rotate(0, 0, -90);
+
+            if (CanMove(Vector2.zero)) return;
+
+            Vector2[] kickOffsets = new Vector2[]
+            {
+            Vector2.left, Vector2.right, Vector2.up,
+            new Vector2(-1, -1), new Vector2(1, -1),
+            new Vector2(-2, 0), new Vector2(2, 0), new Vector2(0, 1)
+            };
+
+            foreach (Vector2 offset in kickOffsets)
+            {
+                transform.position += new Vector3(offset.x, offset.y, 0);
+                if (CanMove(Vector2.zero)) return;
+                transform.position -= new Vector3(offset.x, offset.y, 0);
+            }
+
+            transform.position = oldPosition;
+            transform.rotation = oldRotation;
+            return;
+        }
+
+        // ≈щЄ не рассыпана Ч нужно рассыпать вправо
+        Vector3 oldPos = transform.position;
+        Quaternion oldRot = transform.rotation;
+
+        TransformToSpilledPencils(true);
+
+        Vector2[] wallKicks = new Vector2[]
+        {
+        Vector2.zero,
+        Vector2.left,
+        Vector2.right,
+        Vector2.up,
+        new Vector2(-1, -1),
+        new Vector2(1, -1),
+        new Vector2(-2, 0),
+        new Vector2(2, 0),
+        new Vector2(0, 1)
+        };
+
+        bool success = false;
+        Vector2 successfulOffset = Vector2.zero;
+
+        foreach (Vector2 offset in wallKicks)
+        {
+            transform.position = oldPos + new Vector3(offset.x, offset.y, 0);
+
+            if (CanMove(Vector2.zero))
+            {
+                success = true;
+                successfulOffset = offset;
+                break;
+            }
+        }
+
+        if (success)
+        {
+            InitializeAsCup();
+            transform.position = oldPos;
+            transform.rotation = oldRot;
+
+            TransformToSpilledPencils(true);
+            transform.position = oldPos + new Vector3(successfulOffset.x, successfulOffset.y, 0);
+
+            Debug.Log($"PencilCupItem: рассыпана вправо со смещением {successfulOffset}");
+
+            if (AchievementManager.Instance != null)
+                AchievementManager.Instance.UnlockAchievement("spill_pencils");
+        }
+        else
+        {
+            InitializeAsCup();
+            transform.position = oldPos;
+            transform.rotation = oldRot;
+            Debug.Log("PencilCupItem: рассыпание вправо невозможно");
+        }
     }
 
     public new void Move(Vector2 direction)
