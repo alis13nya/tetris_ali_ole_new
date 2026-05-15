@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public class FieldGrid : MonoBehaviour
 {
+    [Header("Эффекты")]
+    public ParticleSystem blockBreakParticle; // Префаб частиц
+
     [Header("Смещение поля")]
     public Vector2 fieldOffset = Vector2.zero;
 
@@ -35,6 +38,85 @@ public class FieldGrid : MonoBehaviour
     private Dictionary<string, HashSet<Vector2Int>> itemBlocks = new Dictionary<string, HashSet<Vector2Int>>();
     private Dictionary<string, System.Type> itemTypes = new Dictionary<string, System.Type>();
     private int itemCounter = 0;
+
+
+    private System.Collections.IEnumerator AnimateLineClear(int y)
+    {
+        // Собираем все блоки в строке
+        List<GameObject> blocksInLine = new List<GameObject>();
+        List<SpriteRenderer> renderersInLine = new List<SpriteRenderer>();
+        List<Color> originalColors = new List<Color>();
+        List<Vector3> originalScales = new List<Vector3>();
+
+        for (int x = 0; x < 10; x++)
+        {
+            if (grid[x, y] != null)
+            {
+                blocksInLine.Add(grid[x, y]);
+                SpriteRenderer sr = grid[x, y].GetComponent<SpriteRenderer>();
+                if (sr != null)
+                {
+                    renderersInLine.Add(sr);
+                    originalColors.Add(sr.color);
+                    originalScales.Add(grid[x, y].transform.localScale);
+                }
+            }
+        }
+
+        if (blocksInLine.Count == 0) yield break;
+
+        // Анимация: блоки уменьшаются и становятся прозрачными
+        float duration = 0.25f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            float scale = 1f - t;      // уменьшаем от 1 до 0
+            float alpha = 1f - t;      // прозрачность от 1 до 0
+
+            for (int i = 0; i < blocksInLine.Count; i++)
+            {
+                if (blocksInLine[i] != null)
+                {
+                    // Уменьшаем размер
+                    blocksInLine[i].transform.localScale = originalScales[i] * scale;
+
+                    // Меняем прозрачность
+                    if (renderersInLine[i] != null)
+                    {
+                        Color c = originalColors[i];
+                        c.a = alpha;
+                        renderersInLine[i].color = c;
+                    }
+                }
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Создаём частицы для каждого блока
+        foreach (GameObject block in blocksInLine)
+        {
+            if (block != null && blockBreakParticle != null)
+            {
+                // Создаём частицы в позиции блока
+                ParticleSystem particles = Instantiate(blockBreakParticle, block.transform.position, Quaternion.identity);
+                particles.Play();
+
+                // Уничтожаем объект частиц через 1 секунду
+                Destroy(particles.gameObject, 1f);
+            }
+        }
+
+        // Немного ждём, чтобы частицы успели появиться
+        yield return new WaitForSeconds(0.05f);
+
+        // Удаляем строку
+        ClearLine(y);
+        MoveLinesDown(y);
+    }
 
     // ДОБАВЛЯЕМ ПОЛЕ ДЛЯ ХРАНЕНИЯ ОБРАБАТЫВАЕМЫХ БЛОКОВ
     private List<Transform> currentBlocksToProcess = new List<Transform>();
@@ -1646,27 +1728,112 @@ public class FieldGrid : MonoBehaviour
         return true;
     }
 
+    private void QuickClearAnimation(int y)
+    {
+        // Мгновенно меняем визуал (без корутины)
+        for (int x = 0; x < 10; x++)
+        {
+            if (grid[x, y] != null)
+            {
+                // Взрыв частиц
+                if (blockBreakParticle != null)
+                {
+                    ParticleSystem particles = Instantiate(blockBreakParticle, grid[x, y].transform.position, Quaternion.identity);
+                    particles.Play();
+                    Destroy(particles.gameObject, 1f);
+                }
+
+                // Мгновенное удаление (без плавности)
+                Destroy(grid[x, y]);
+                grid[x, y] = null;
+            }
+        }
+    }
+    private void ApplyGravity()
+    {
+        bool changed;
+        do
+        {
+            changed = false;
+
+            // Проверяем каждый столбец снизу вверх
+            for (int x = 0; x < 10; x++)
+            {
+                for (int y = 1; y < 20; y++)  // с нижней строки наверх
+                {
+                    if (grid[x, y] != null && IsEmptyBelow(x, y))
+                    {
+                        // Блок может упасть
+                        MoveBlockDown(x, y);
+                        changed = true;
+                    }
+                }
+            }
+        } while (changed); // Повторяем, пока есть что падать
+    }
+
+    private bool IsEmptyBelow(int x, int y)
+    {
+        // Проверяем, пусто ли место под блоком
+        return grid[x, y - 1] == null;
+    }
+
+    private void MoveBlockDown(int x, int y)
+    {
+        GameObject block = grid[x, y];
+        grid[x, y] = null;
+        grid[x, y - 1] = block;
+
+        // Обновляем позицию блока в мире
+        block.transform.position = GridToWorldPosition(x, y - 1);
+
+        // Обновляем словари блоков (если нужно)
+        Vector2Int oldPos = new Vector2Int(x, y);
+        Vector2Int newPos = new Vector2Int(x, y - 1);
+
+        if (blockToItemId.ContainsKey(oldPos))
+        {
+            string itemId = blockToItemId[oldPos];
+            blockToItemId.Remove(oldPos);
+            blockToItemId[newPos] = itemId;
+
+            // Обновляем позицию в itemBlocks
+            if (itemBlocks.ContainsKey(itemId))
+            {
+                itemBlocks[itemId].Remove(oldPos);
+                itemBlocks[itemId].Add(newPos);
+            }
+        }
+    }
     public int CheckAndClearLines()
     {
         int linesCleared = 0;
 
         for (int y = 0; y < 20; y++)
         {
-            // Пока строка полная — удаляем
             while (IsLineComplete(y))
             {
+                // Эффект частиц
+                QuickClearAnimation(y);
+
+                // Физическое удаление строки и сдвиг вниз
                 ClearLine(y);
                 MoveLinesDown(y);
+
                 linesCleared++;
-                // После опускания проверяем ту же строку y (там теперь другие блоки)
+                // while продолжит проверять ту же строку y (там теперь другие блоки)
             }
         }
 
         if (linesCleared > 0)
+        {   // ===== ДОБАВЬ ЭТО =====
+            ApplyGravity();
+            // =====================
             Debug.Log($"Удалено линий: {linesCleared}");
-
+        }
         return linesCleared;
     }
+
 
     private bool IsLineComplete(int y)
     {
