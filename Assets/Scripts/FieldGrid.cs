@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public class FieldGrid : MonoBehaviour
 {
+    [Header("Звуки")]
+    public AudioClip lineClearSound;
+
     [Header("Эффекты")]
     public ParticleSystem blockBreakParticle; // Префаб частиц
 
@@ -1795,6 +1798,11 @@ public class FieldGrid : MonoBehaviour
 
     private void QuickClearAnimation(int y)
     {
+        // Воспроизводим звук удаления строки
+        if (lineClearSound != null)
+        {
+            AudioSource.PlayClipAtPoint(lineClearSound, Camera.main.transform.position, 0.3f);
+        }
         // Сначала показываем частицы
         for (int x = 0; x < 10; x++)
         {

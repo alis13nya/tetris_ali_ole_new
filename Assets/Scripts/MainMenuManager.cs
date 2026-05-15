@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class MainMenuManager : MonoBehaviour
 {
+    public static bool OpenAchievementsOnStart = false;
+
     [Header("Кнопки")]
     public Button playButton;
     public Button quitButton;

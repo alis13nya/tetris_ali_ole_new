@@ -16,4 +16,4 @@ MonoBehaviour:
   title: "\u0410\u043A\u043A\u0443\u0440\u0430\u0442\u043D\u0435\u0435 \u0441 \u0447\u0430\u0435\u043C"
   description: "\u0437\u0430 \u043F\u0440\u043E\u043B\u0438\u0442\u044B\u0439 \u0447\u0430\u0439"
   icon: {fileID: 0}
-  isPositive: 1
+  isPositive: 0

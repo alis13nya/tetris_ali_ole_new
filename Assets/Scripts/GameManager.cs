@@ -6,6 +6,9 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("Game Over UI")]
+    public GameOverUI gameOverUI;
+
     [Header("Управление")]
     public float fallSpeed = 1f;
     public float fastFallSpeed = 0.1f;
@@ -504,7 +507,11 @@ public class GameManager : MonoBehaviour
                 gameOver = true;
                 Destroy(currentShape.gameObject);
                 currentShape = null;
-
+                // Показываем нужную панель Game Over
+                if (gameOverUI != null)
+                {
+                    gameOverUI.ShowGameOver();
+                } 
                 if (fieldGrid != null)
                 {
                     var (offset, scale) = fieldGrid.GetFieldSettings();
