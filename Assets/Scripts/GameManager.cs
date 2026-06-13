@@ -692,7 +692,9 @@ public class GameManager : MonoBehaviour
             "TableItem",
             "EmptyPencilCupItem",
             "LoosePencilsItem",
-            "EmptyCupItem"
+            "EmptyCupItem", 
+            "PlantItem",
+            "LampItem"
         };
 
         foreach (var shapeName in itemShapeNames)

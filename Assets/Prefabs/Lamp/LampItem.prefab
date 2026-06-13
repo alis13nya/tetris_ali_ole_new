@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3046347883110040189
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5639528124686168545}
+  - component: {fileID: 3462852401805124607}
+  m_Layer: 0
+  m_Name: LampItem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5639528124686168545
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3046347883110040189}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 443.49432, y: 1230.5686, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3462852401805124607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3046347883110040189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 127ef02e2e335554eb3d5274cb6a5cfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LampItem
+  blocks: []
+  shapeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockPrefab: {fileID: 9077802966353536098, guid: 6d23334d4385b53418d3cdc612ca82c1, type: 3}
+  basePrefab: {fileID: 7096712162972211218, guid: e3ca7fd02d17c0e41a2cae578040cbab, type: 3}
+  stemPrefab: {fileID: 7470806135793893067, guid: eb8925b154ce50e4c81f0deab45b5e5b, type: 3}
+  shadePrefab: {fileID: 4408090031694744971, guid: fc962689f6179df489baf91426801226, type: 3}
+  normalSprite: {fileID: 2599969905456701152, guid: 6388148e77481d248bd1c04cbf7eada3, type: 3}
+  yellowSprite: {fileID: 5197900980334367773, guid: bd814790bbf29cc4d8e9e1b1673381af, type: 3}
+  purpleSprite: {fileID: -8637307958777317588, guid: 0ba7e67746713194687e1595db35bcaa, type: 3}

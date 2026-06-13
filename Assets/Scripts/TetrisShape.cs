@@ -362,7 +362,9 @@ public class TetrisShape : MonoBehaviour
         if (this is TableItem) return "TableItem";
         if (this is EmptyPencilCupItem) return "EmptyPencilCupItem";
         if (this is LoosePencilsItem) return "LoosePencilsItem";
-        if (this is EmptyCupItem) return "EmptyCupItem"; 
+        if (this is EmptyCupItem) return "EmptyCupItem";
+        if (this is PlantItem) return "PlantItem";
+        if (this is LampItem) return "LampItem";
 
         return null;
     }
