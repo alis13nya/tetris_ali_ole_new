@@ -607,7 +607,6 @@ public class GameManager : MonoBehaviour
         if (pausePanel != null)
         {
             pausePanel.SetActive(true);
-            // Убедимся что панель паузы поверх всего
             SetCanvasSortingOrder(pausePanel, 1000);
         }
 

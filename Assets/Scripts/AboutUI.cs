@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-
 public class AboutUI : MonoBehaviour
 {
     [Header("Панель Об игре")]
@@ -8,21 +7,18 @@ public class AboutUI : MonoBehaviour
     public Button openAboutButton;
     public Button closeAboutButton;
     [Header("Ссылки")]
-    public Transform contentParent; // перетащи сюда Content из Scroll View
+    public Transform contentParent; 
     void Start()
     {
-        // Изначально панель закрыта
         if (aboutPanel != null)
             aboutPanel.SetActive(false);
-
-        // Назначаем кнопки
+ 
         if (openAboutButton != null)
             openAboutButton.onClick.AddListener(OpenPanel);
 
         if (closeAboutButton != null)
             closeAboutButton.onClick.AddListener(ClosePanel);
     }
-
     void OpenPanel()
     {
         if (aboutPanel != null)
