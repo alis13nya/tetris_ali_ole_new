@@ -43,6 +43,7 @@ public class FieldGrid : MonoBehaviour
     private Dictionary<string, System.Type> itemTypes = new Dictionary<string, System.Type>();
     private Dictionary<Vector2Int, Sprite> lampShadeSprites = new Dictionary<Vector2Int, Sprite>();
     private Dictionary<Vector2Int, string> lampState = new Dictionary<Vector2Int, string>(); // "normal", "yellow", "purple"
+    private Dictionary<string, ShelfItem> shelfItems = new Dictionary<string, ShelfItem>();
     private int itemCounter = 0;
 
 
@@ -372,7 +373,8 @@ public class FieldGrid : MonoBehaviour
         bool isChair = isChairL || isChairJ;
         bool isPlant = shape is PlantItem;
         bool isLamp = shape is LampItem;
-
+        bool isShelf = shape is ShelfItem;
+        bool isFileFolder = shape is FileFolderItem;
 
         // Сохраняем блоки для обработки в поле класса
         currentBlocksToProcess.Clear();
@@ -454,6 +456,12 @@ public class FieldGrid : MonoBehaviour
 
             // Выходим из метода, чтобы не попасть в общий Destroy
             return;
+        }
+        // ОСОБАЯ ОБРАБОТКА ДЛЯ ПОЛКИ
+        if (shape is ShelfItem shelf)
+        {
+            shelfItems[itemId] = shelf;
+            // НЕ сбрасываем поворот! Просто сохраняем
         }
 
         // ОСОБАЯ ОБРАБОТКА ДЛЯ EmptyCupItem (пустая кружка)
@@ -818,141 +826,208 @@ public class FieldGrid : MonoBehaviour
             itemTypes[itemId] = itemType;
             Debug.Log($"Зарегистрирован предмет {itemId} (тип: {itemType.Name}) с {itemBlockPositions.Count} блоками");
         }
+        // ВАЖНО: ЭТОТ БЛОК ДОБАВИТЬ ПОСЛЕ ЦИКЛА foreach (Transform block in currentBlocksToProcess)
+        // и до вызова CheckAchievements
 
-        // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОМ СТАКАНЕ (ВЕРТИКАЛЬНО)
-        if (shape is LoosePencilsItem && isOnEmptyCup)
+        // Проверка: если ставим папку на полку
+        if (isFileFolder)
         {
-            LoosePencilsItem pencils = shape as LoosePencilsItem;
-
-            if (pencils != null && pencils.IsVerticalOrientation)
+            // Получаем позицию папки (два блока)
+            List<Vector2Int> folderPositions = new List<Vector2Int>();
+            foreach (Transform block in currentBlocksToProcess)
             {
-                if (powerScaleManager != null)
+                folderPositions.Add(WorldToGridPosition(block.position));
+            }
+
+            // Проверяем, стоит ли папка на какой-то полке
+            // Папка занимает два блока по горизонтали, значит должна стоять на двух блоках полки
+            if (folderPositions.Count == 2 && folderPositions[0].y == folderPositions[1].y)
+            {
+                // Определяем, есть ли под папкой полка
+                Vector2Int belowPos1 = new Vector2Int(folderPositions[0].x, folderPositions[0].y - 1);
+                Vector2Int belowPos2 = new Vector2Int(folderPositions[1].x, folderPositions[1].y - 1);
+
+                // Находим ID предмета полки под папкой
+                string shelfItemId = null;
+                if (blockToItemId.ContainsKey(belowPos1))
                 {
-                    powerScaleManager.AddPencilsOnEmptyCup();
-                    Debug.Log("✓ Карандаши поставлены на пустой стакан (вертикально)! Шкала усиления увеличилась.");
+                    shelfItemId = blockToItemId[belowPos1];
+                }
+                else if (blockToItemId.ContainsKey(belowPos2))
+                {
+                    shelfItemId = blockToItemId[belowPos2];
                 }
 
-                StartCoroutine(RemoveTouchingPencilsFromEmptyCupDelayed(pencils));
-            }
-            else if (pencils != null && !pencils.IsVerticalOrientation)
-            {
-                Debug.Log("✗ Карандаши на пустом стакане, но не вертикально - бонус не начислен");
-            }
-        }
-
-        // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОЙ КРУЖКЕ (ВЕРТИКАЛЬНО)
-        if (shape is LoosePencilsItem && isOnEmptyCupItem)
-        {
-            LoosePencilsItem pencils = shape as LoosePencilsItem;
-
-            if (pencils != null && pencils.IsVerticalOrientation)
-            {
-                // УМЕНЬШАЕМ ШКАЛУ ЗА КАРАНДАШИ В КРУЖКЕ
-                if (powerScaleManager != null)
+                if (shelfItemId != null && itemTypes.ContainsKey(shelfItemId) && itemTypes[shelfItemId] == typeof(ShelfItem))
                 {
-                    float currentAmount = powerScaleManager.currentFillAmount;
-                    powerScaleManager.SetFillAmount(Mathf.Max(0, currentAmount - 0.15f));
-                    Debug.Log("✗ Карандаши вставлены в пустую кружку (вертикально)! Шкала усиления уменьшилась на 15%.");
+                    // Находим компонент полки
+                    ShelfItem foundShelf = null;
+                    if (shelfItems.ContainsKey(shelfItemId))
+                    {
+                        foundShelf = shelfItems[shelfItemId];
+                    }
+
+                    if (foundShelf != null && foundShelf.IsHorizontal())
+                    {
+                        Vector2Int shelfLeftPos = GetShelfLeftPosition(shelfItemId);
+                        if (shelfLeftPos != Vector2Int.zero)
+                        {
+                            int folderStartX = Mathf.Min(folderPositions[0].x, folderPositions[1].x);
+                            int offset = folderStartX - shelfLeftPos.x;
+
+                            // Папка может стоять на любой позиции на полке (не важно где)
+                            if (offset == 0 || offset == 1)
+                            {
+                                // Заполняем ВСЮ полку (меняем все 3 спрайта)
+                                foundShelf.FillShelf();
+
+                                // Удаляем папку с поля
+                                foreach (Transform block in currentBlocksToProcess)
+                                {
+                                    Destroy(block.gameObject);
+                                }
+                                Destroy(shape.gameObject);
+                                return;
+                            }
+                        }
+                    }
+                    // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОМ СТАКАНЕ (ВЕРТИКАЛЬНО)
+                    if (shape is LoosePencilsItem && isOnEmptyCup)
+                    {
+                        LoosePencilsItem pencils = shape as LoosePencilsItem;
+
+                        if (pencils != null && pencils.IsVerticalOrientation)
+                        {
+                            if (powerScaleManager != null)
+                            {
+                                powerScaleManager.AddPencilsOnEmptyCup();
+                                Debug.Log("✓ Карандаши поставлены на пустой стакан (вертикально)! Шкала усиления увеличилась.");
+                            }
+
+                            StartCoroutine(RemoveTouchingPencilsFromEmptyCupDelayed(pencils));
+                        }
+                        else if (pencils != null && !pencils.IsVerticalOrientation)
+                        {
+                            Debug.Log("✗ Карандаши на пустом стакане, но не вертикально - бонус не начислен");
+                        }
+                    }
+
+                    // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОЙ КРУЖКЕ (ВЕРТИКАЛЬНО)
+                    if (shape is LoosePencilsItem && isOnEmptyCupItem)
+                    {
+                        LoosePencilsItem pencils = shape as LoosePencilsItem;
+
+                        if (pencils != null && pencils.IsVerticalOrientation)
+                        {
+                            // УМЕНЬШАЕМ ШКАЛУ ЗА КАРАНДАШИ В КРУЖКЕ
+                            if (powerScaleManager != null)
+                            {
+                                float currentAmount = powerScaleManager.currentFillAmount;
+                                powerScaleManager.SetFillAmount(Mathf.Max(0, currentAmount - 0.15f));
+                                Debug.Log("✗ Карандаши вставлены в пустую кружку (вертикально)! Шкала усиления уменьшилась на 15%.");
+                            }
+
+                            StartCoroutine(RemoveTouchingPencilsFromEmptyCupItemDelayed(pencils));
+                        }
+                        else if (pencils != null && !pencils.IsVerticalOrientation)
+                        {
+                            Debug.Log("✗ Карандаши на пустой кружке, но не вертикально - эффект не срабатывает");
+                        }
+                    }
+
+                    // ПРОВЕРКА КОМПЬЮТЕРА НА СТОЛЕ
+                    if (isComputer && computerTouchesTable)
+                    {
+                        if (powerScaleManager != null)
+                        {
+                            powerScaleManager.AddComputerOnTable();
+                            Debug.Log("Компьютер поставлен на стол! Шкала усиления увеличилась.");
+                        }
+                    }
+
+                    // ПРОВЕРКА КРЕСЛА РЯДОМ СО СТОЛОМ
+                    if (isChair)
+                    {
+                        // Проверяем, касается ли кресло стола сбоку
+                        chairAdjacentToTable = IsChairAdjacentToTable();
+                        if (chairAdjacentToTable && powerScaleManager != null)
+                        {
+                            powerScaleManager.AddChairAdjacentToTable();
+                            Debug.Log($"Кресло {(isChairL ? "L" : "J")} поставлено рядом со столом! Шкала усиления увеличилась.");
+                        }
+                    }
+                    // НОВОЕ: ПРОВЕРКА СТОЛА РЯДОМ С КРЕСЛОМ
+                    if (isTable)
+                    {
+                        if (tableAdjacentToChair && powerScaleManager != null)
+                        {
+                            powerScaleManager.AddChairAdjacentToTable();
+                            Debug.Log($"Стол поставлен рядом с креслом! Шкала усиления увеличилась.");
+                        }
+                    }
+                    // ЛОГИКА ДЛЯ СТОПОК КНИГ
+                    if (isBookStack)
+                    {
+                        // Проверяем все возможные взаимодействия с новой стопкой книг
+                        CheckBookStackInteractions(shape);
+
+                        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: СТОПКА КНИГ НА КРЕСЛЕ
+                        if (bookStackOnChair && powerScaleManager != null)
+                        {
+                            powerScaleManager.RemoveBookStackOnChair();
+                            Debug.Log("Стопка книг поставлена на кресло! Шкала усиления уменьшилась.");
+                        }
+                    }
+                    else // Для обычных фигур
+                    {
+                        // Проверяем взаимодействия в зависимости от позиции
+                        if (isOnTable)
+                        {
+                            CheckForSpecialItemsOnTable(shape);
+                        }
+
+                        if (isOnComputer)
+                        {
+                            CheckForSpecialItemsOnComputer(shape);
+                        }
+
+                        if (isOnBookStack)
+                        {
+                            CheckForItemsOnBookStack(shape);
+                        }
+
+                        if (isAdjacentToBookStack)
+                        {
+                            CheckForItemsAdjacentToBookStack(shape);
+                        }
+
+                        if (isOnChair)
+                        {
+                            CheckForItemsOnChair(shape);
+                        }
+
+                    }
+                    // После блока проверок для стопки книг, кресел, столов и т.д.
+                    CheckAchievements(shape, isOnTable, isOnComputer, computerTouchesTable,
+                                      emptyCupOnTable, emptyCupItemOnTable, isBookStack,
+                                      isOnBookStack, isAdjacentToBookStack, isOnChair,
+                                      shape.GetType() == typeof(ChairItemL) || shape.GetType() == typeof(ChairItemJ));
+
+                    Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
+                    // Если это лампа - не уничтожаем, а только отключаем, чтобы сохранить компонент
+                    if (shape is LampItem)
+                    {
+                        shape.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        Destroy(shape.gameObject);
+                    }
+
+
                 }
-
-                StartCoroutine(RemoveTouchingPencilsFromEmptyCupItemDelayed(pencils));
-            }
-            else if (pencils != null && !pencils.IsVerticalOrientation)
-            {
-                Debug.Log("✗ Карандаши на пустой кружке, но не вертикально - эффект не срабатывает");
             }
         }
-
-        // ПРОВЕРКА КОМПЬЮТЕРА НА СТОЛЕ
-        if (isComputer && computerTouchesTable)
-        {
-            if (powerScaleManager != null)
-            {
-                powerScaleManager.AddComputerOnTable();
-                Debug.Log("Компьютер поставлен на стол! Шкала усиления увеличилась.");
-            }
-        }
-
-        // ПРОВЕРКА КРЕСЛА РЯДОМ СО СТОЛОМ
-        if (isChair)
-        {
-            // Проверяем, касается ли кресло стола сбоку
-            chairAdjacentToTable = IsChairAdjacentToTable();
-            if (chairAdjacentToTable && powerScaleManager != null)
-            {
-                powerScaleManager.AddChairAdjacentToTable();
-                Debug.Log($"Кресло {(isChairL ? "L" : "J")} поставлено рядом со столом! Шкала усиления увеличилась.");
-            }
-        }
-        // НОВОЕ: ПРОВЕРКА СТОЛА РЯДОМ С КРЕСЛОМ
-        if (isTable)
-        {
-            if (tableAdjacentToChair && powerScaleManager != null)
-            {
-                powerScaleManager.AddChairAdjacentToTable();
-                Debug.Log($"Стол поставлен рядом с креслом! Шкала усиления увеличилась.");
-            }
-        }
-        // ЛОГИКА ДЛЯ СТОПОК КНИГ
-        if (isBookStack)
-        {
-            // Проверяем все возможные взаимодействия с новой стопкой книг
-            CheckBookStackInteractions(shape);
-
-            // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: СТОПКА КНИГ НА КРЕСЛЕ
-            if (bookStackOnChair && powerScaleManager != null)
-            {
-                powerScaleManager.RemoveBookStackOnChair();
-                Debug.Log("Стопка книг поставлена на кресло! Шкала усиления уменьшилась.");
-            }
-        }
-        else // Для обычных фигур
-        {
-            // Проверяем взаимодействия в зависимости от позиции
-            if (isOnTable)
-            {
-                CheckForSpecialItemsOnTable(shape);
-            }
-
-            if (isOnComputer)
-            {
-                CheckForSpecialItemsOnComputer(shape);
-            }
-
-            if (isOnBookStack)
-            {
-                CheckForItemsOnBookStack(shape);
-            }
-
-            if (isAdjacentToBookStack)
-            {
-                CheckForItemsAdjacentToBookStack(shape);
-            }
-
-            if (isOnChair)
-            {
-                CheckForItemsOnChair(shape);
-            }
-
-        }
-        // После блока проверок для стопки книг, кресел, столов и т.д.
-        CheckAchievements(shape, isOnTable, isOnComputer, computerTouchesTable,
-                          emptyCupOnTable, emptyCupItemOnTable, isBookStack,
-                          isOnBookStack, isAdjacentToBookStack, isOnChair,
-                          shape.GetType() == typeof(ChairItemL) || shape.GetType() == typeof(ChairItemJ));
-
-        Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
-        // Если это лампа - не уничтожаем, а только отключаем, чтобы сохранить компонент
-        if (shape is LampItem)
-        {
-            shape.gameObject.SetActive(false);
-        }
-        else
-        {
-            Destroy(shape.gameObject);
-        }
-
-
     }
 
     // НОВЫЙ МЕТОД: Проверка стоит ли блок на кресле
@@ -2317,6 +2392,7 @@ public class FieldGrid : MonoBehaviour
         lampShadeSprites.Clear();
         lampState.Clear();
         plantBlocks.Clear();
+        shelfItems.Clear();
 
 
         Debug.Log("Поле очищено");
@@ -2587,6 +2663,22 @@ public class FieldGrid : MonoBehaviour
                 }
             }
         }
+    }
+    private Vector2Int GetShelfLeftPosition(string shelfId)
+    {
+        if (!itemBlocks.ContainsKey(shelfId)) return Vector2Int.zero;
+
+        int minX = 100;
+        foreach (Vector2Int pos in itemBlocks[shelfId])
+        {
+            if (pos.x < minX) minX = pos.x;
+        }
+
+        foreach (Vector2Int pos in itemBlocks[shelfId])
+        {
+            if (pos.x == minX) return pos;
+        }
+        return Vector2Int.zero;
     }
 
 }

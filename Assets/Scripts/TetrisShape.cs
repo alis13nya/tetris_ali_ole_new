@@ -365,6 +365,9 @@ public class TetrisShape : MonoBehaviour
         if (this is EmptyCupItem) return "EmptyCupItem";
         if (this is PlantItem) return "PlantItem";
         if (this is LampItem) return "LampItem";
+        if (this is FileFolderItem) return "FileFolderItem";
+        if (this is ShelfItem) return "ShelfItem";
+      
 
         return null;
     }

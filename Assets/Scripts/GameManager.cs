@@ -544,15 +544,17 @@ public class GameManager : MonoBehaviour
             controlsCanvasInstance = null;
         }
 
-        // Создаем новую справку ТОЛЬКО если нужно
-        if (MainMenuManager.ShowControlsInGame && !IsMobilePlatform() && controlsCanvasPrefab != null)
-        {
-            CreateControlsCanvas();
-        }
-
         if (fieldGrid != null)
         {
             fieldGrid.ClearGrid();
+        }
+
+        // ===== ДОБАВЬ ПРИНУДИТЕЛЬНЫЙ СБРОС ЛАМП =====
+        // Уничтожаем все оставшиеся объекты ламп в сцене
+        LampItem[] remainingLamps = FindObjectsOfType<LampItem>();
+        foreach (var lamp in remainingLamps)
+        {
+            Destroy(lamp.gameObject);
         }
 
         if (currentShape != null)
@@ -694,7 +696,8 @@ public class GameManager : MonoBehaviour
             "LoosePencilsItem",
             "EmptyCupItem", 
             "PlantItem",
-            "LampItem"
+            "LampItem",
+            "FileFolderItem"
         };
 
         foreach (var shapeName in itemShapeNames)
@@ -744,6 +747,19 @@ public class GameManager : MonoBehaviour
                     settings.previewPosition = new Vector3(12f, 16f, -5f);
                     settings.previewScale = 0.8f;
                     break;
+                case "FileFolderItem":
+                    settings.previewPosition = new Vector3(12f, 16f, -5f);
+                    settings.previewScale = 0.7f;
+                    break;
+                case "LampItem":
+                    settings.previewPosition = new Vector3(12f, 16f, -5f);
+                    settings.previewScale = 0.7f;
+                    break;
+                case "ShelfItem":
+                    settings.previewPosition = new Vector3(12f, 16f, -5f);
+                    settings.previewScale = 0.7f;
+                    break;
+   
                 default:
                     settings.previewPosition = defaultPreviewPosition;
                     settings.previewScale = defaultPreviewScale;
