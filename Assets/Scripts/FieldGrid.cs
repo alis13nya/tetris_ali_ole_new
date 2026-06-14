@@ -133,8 +133,9 @@ public class FieldGrid : MonoBehaviour
         foreach (Transform block in currentBlocksToProcess)
         {
             Vector2Int pos = WorldToGridPosition(block.position);
-            if (pos.y > 0 && emptyCupItemBlocks.Contains(new Vector2Int(pos.x, pos.y - 1)))
-                return true;
+            bool result = pos.y > 0 && emptyCupItemBlocks.Contains(new Vector2Int(pos.x, pos.y - 1));
+            Debug.Log($"IsOnEmptyCupItem: block pos={pos}, below={(pos.x, pos.y - 1)}, contains={emptyCupItemBlocks.Contains(new Vector2Int(pos.x, pos.y - 1))}, result={result}");
+            if (result) return true;
         }
         return false;
     }
@@ -240,6 +241,16 @@ public class FieldGrid : MonoBehaviour
             if (pencils != null && pencils.IsVerticalOrientation && IsOnEmptyCupForPencils())
             {
                 AchievementManager.Instance.UnlockAchievement("pencils_on_empty_cup");
+            }
+        }
+        if (shape is LoosePencilsItem)
+        {
+            float angle = shape.transform.rotation.eulerAngles.z % 360f;
+            if (Mathf.Abs(angle - 180f) < 5f) // допуск 5 градусов
+            {
+                // достижение и шкала
+                if (powerScaleManager != null) powerScaleManager.RemoveUpsideDownPencils();
+                if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("nightmare_artist");
             }
         }
         // Кружка с чаем на столе (непролитая)
@@ -734,7 +745,6 @@ public class FieldGrid : MonoBehaviour
                 StartCoroutine(RemoveTouchingPencilsFromEmptyCupDelayed(pencils));
             }
         }
-
         // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОЙ КРУЖКЕ
         if (shape is LoosePencilsItem && isOnEmptyCupItem)
         {
@@ -745,8 +755,23 @@ public class FieldGrid : MonoBehaviour
                 {
                     float currentAmount = powerScaleManager.currentFillAmount;
                     powerScaleManager.SetFillAmount(Mathf.Max(0, currentAmount - 0.15f));
+                    Debug.Log("✗ Карандаши вставлены в пустую кружку (вертикально)! Шкала усиления уменьшилась на 15%.");
                 }
                 StartCoroutine(RemoveTouchingPencilsFromEmptyCupItemDelayed(pencils));
+            }
+        }
+        // ===== ПРОВЕРКА ДЛЯ ПЕРЕВЁРНУТЫХ КАРАНДАШЕЙ =====
+        if (shape is LoosePencilsItem)
+        {
+            float angle = shape.transform.rotation.eulerAngles.z % 360f;
+            // Если фигура не повернута (0°), значит карандаши стоят грифелем вниз – штраф
+            if (Mathf.Abs(angle) < 5f)
+            {
+                if (powerScaleManager != null)
+                    powerScaleManager.RemoveUpsideDownPencils();
+                if (AchievementManager.Instance != null)
+                    AchievementManager.Instance.UnlockAchievement("nightmare_artist");
+                Debug.Log("=== ДОСТИЖЕНИЕ: Кошмар художника (карандаши не перевёрнуты) ===");
             }
         }
 

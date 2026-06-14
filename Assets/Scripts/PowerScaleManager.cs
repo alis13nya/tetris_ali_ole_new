@@ -67,6 +67,14 @@ public class PowerScaleManager : MonoBehaviour
         ChangeFillAmount(-spilledCupOnChairRemove, $"Пролитая кружка на кресле: -{spilledCupOnChairRemove * 100}%");
     }
 
+    [Header("Настройки заполнения - ПЕРЕВЁРНУТЫЕ КАРАНДАШИ")]
+    public float upsideDownPencilsRemove = 0.1f;
+
+    public void RemoveUpsideDownPencils()
+    {
+        ChangeFillAmount(-upsideDownPencilsRemove, $"Перевёрнутые карандаши (грифелем вниз): -{upsideDownPencilsRemove * 100}%");
+    }
+
     [Header("UI элементы")]
     public Slider powerScaleSlider;
     public Image fillImage;
