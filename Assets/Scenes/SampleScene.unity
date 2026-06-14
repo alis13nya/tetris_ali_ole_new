@@ -1436,6 +1436,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 076206a0fb02cdb4b8ba7fc85a8a1db5, type: 2}
   - {fileID: 11400000, guid: 187b6ca872dff024ab88ea2ed1928788, type: 2}
   - {fileID: 11400000, guid: cefdc7a65d51e6643a9ff1a2f6bcb123, type: 2}
+  - {fileID: 11400000, guid: e473d388e633f554b86682eadfd7097a, type: 2}
 --- !u!4 &649164002
 Transform:
   m_ObjectHideFlags: 0
@@ -3735,6 +3736,7 @@ MonoBehaviour:
   bookStackOnBookStackAdd: 0.12
   pencilsOnEmptyCupAdd: 0.18
   cupOnChairRemove: 0.15
+  cupOnBookStackRemove: 0.15
   powerScaleSlider: {fileID: 2039550026}
   fillImage: {fileID: 1336767639}
   normalColor: {r: 0, g: 0, b: 1, a: 1}
@@ -6543,7 +6545,7 @@ MonoBehaviour:
   defaultPreviewPosition: {x: 9, y: 19, z: -5}
   defaultPreviewScale: 0.7
   currentShape: {fileID: 8378738065402561988, guid: 0bc7f012a63f47140835b7072edd6efb, type: 3}
-  powerScaleManager: {fileID: 0}
+  powerScaleManager: {fileID: 1459341837}
   score: 0
   linesCleared: 0
   scoreText: {fileID: 1214724431}

@@ -43,6 +43,30 @@ public class PowerScaleManager : MonoBehaviour
     [Header("Настройки заполнения - КРУЖКА НА КРЕСЛЕ")]
     public float cupOnChairRemove = 0.15f;
 
+    [Header("Настройки заполнения - КРУЖКА НА КНИГАХ")]
+    public float cupOnBookStackRemove = 0.15f;
+
+    public void RemoveCupOnBookStack()
+    {
+        ChangeFillAmount(-cupOnBookStackRemove, $"Кружка с чаем на книгах: -{cupOnBookStackRemove * 100}%");
+    }
+
+    [Header("Настройки заполнения - ПРОЛИТАЯ КРУЖКА НА КНИГАХ")]
+    public float spilledCupOnBookStackRemove = 0.2f;  // можно задать другое значение
+
+    [Header("Настройки заполнения - ПРОЛИТАЯ КРУЖКА НА КРЕСЛЕ")]
+    public float spilledCupOnChairRemove = 0.2f;
+
+    public void RemoveSpilledCupOnBookStack()
+    {
+        ChangeFillAmount(-spilledCupOnBookStackRemove, $"Пролитая кружка на книгах: -{spilledCupOnBookStackRemove * 100}%");
+    }
+
+    public void RemoveSpilledCupOnChair()
+    {
+        ChangeFillAmount(-spilledCupOnChairRemove, $"Пролитая кружка на кресле: -{spilledCupOnChairRemove * 100}%");
+    }
+
     [Header("UI элементы")]
     public Slider powerScaleSlider;
     public Image fillImage;

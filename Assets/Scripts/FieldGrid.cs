@@ -877,7 +877,6 @@ public class FieldGrid : MonoBehaviour
     {
         Debug.Log($"Предмет {shape.GetType().Name} стоит на кресле");
 
-        // Проверка: кружка с чаем на кресле
         if (shape is CupItem cup)
         {
             var isFlippedField = typeof(CupItem).GetField("isFlipped",
@@ -885,12 +884,21 @@ public class FieldGrid : MonoBehaviour
             if (isFlippedField != null)
             {
                 bool isFlipped = (bool)isFlippedField.GetValue(cup);
-                if (!isFlipped) // Непролитая кружка
+                if (!isFlipped)
                 {
+                    // Непролитая кружка
                     if (powerScaleManager != null)
                         powerScaleManager.RemoveCupOnChair();
                     if (AchievementManager.Instance != null)
                         AchievementManager.Instance.UnlockAchievement("cup_on_chair");
+                }
+                else
+                {
+                    // Пролитая кружка
+                    if (powerScaleManager != null)
+                        powerScaleManager.RemoveSpilledCupOnChair();
+                    if (AchievementManager.Instance != null)
+                        AchievementManager.Instance.UnlockAchievement("spilled_cup_on_chair");
                 }
             }
         }
@@ -1619,9 +1627,34 @@ public class FieldGrid : MonoBehaviour
     }
 
     // МЕТОД: Проверка предметов на стопке книг
+    // МЕТОД: Проверка предметов на стопке книг
     private void CheckForItemsOnBookStack(TetrisShape shape)
     {
         Debug.Log($"Предмет {shape.GetType().Name} стоит на стопке книг");
+
+        if (shape is CupItem cup)
+        {
+            var isFlippedField = typeof(CupItem).GetField("isFlipped",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (isFlippedField != null)
+            {
+                bool isFlipped = (bool)isFlippedField.GetValue(cup);
+                if (!isFlipped)
+                {
+                    if (powerScaleManager != null)
+                        powerScaleManager.RemoveCupOnBookStack();
+                    if (AchievementManager.Instance != null)
+                        AchievementManager.Instance.UnlockAchievement("cup_on_bookstack");
+                }
+                else
+                {
+                    if (powerScaleManager != null)
+                        powerScaleManager.RemoveSpilledCupOnBookStack();
+                    if (AchievementManager.Instance != null)
+                        AchievementManager.Instance.UnlockAchievement("spilled_cup_on_bookstack");
+                }
+            }
+        }
     }
 
     // МЕТОД: Проверка предметов рядом с стопкой книг
