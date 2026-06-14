@@ -40,6 +40,9 @@ public class PowerScaleManager : MonoBehaviour
     [Header("Настройки заполнения - ПУСТОЙ СТАКАН")] // НОВАЯ СЕКЦИЯ
     public float pencilsOnEmptyCupAdd = 0.18f;        // Карандаши на пустой стакан
 
+    [Header("Настройки заполнения - КРУЖКА НА КРЕСЛЕ")]
+    public float cupOnChairRemove = 0.15f;
+
     [Header("UI элементы")]
     public Slider powerScaleSlider;
     public Image fillImage;
@@ -103,7 +106,10 @@ public class PowerScaleManager : MonoBehaviour
     {
         ChangeFillAmount(0.1f, $"Кресло рядом со столом: +10%");
     }
-
+    public void RemoveCupOnChair()
+    {
+        ChangeFillAmount(-cupOnChairRemove, $"Кружка с чаем на кресле: -{cupOnChairRemove * 100}%");
+    }
     // === НОВЫЕ МЕТОДЫ ДЛЯ СТОПОК КНИГ НА КРЕСЛЕ ===
     public void RemoveBookStackOnChair()
     {

@@ -347,8 +347,6 @@ public class FieldGrid : MonoBehaviour
 
     public void LockShape(TetrisShape shape)
     {
-
-
         // Если фигура — нейтральный блок, игнорируем
         if (shape.GetComponent<NeutralBlockTag>() != null)
         {
@@ -391,26 +389,22 @@ public class FieldGrid : MonoBehaviour
         bool isOnBookStack = false;
         bool isAdjacentToBookStack = false;
         bool computerTouchesTable = false;
-        bool chairAdjacentToTable = false; // Кресло рядом со столом
-        bool tableAdjacentToChair = false; // НОВОЕ: стол рядом с креслом
-        bool isOnChair = false; // Предмет стоит на кресле
-        bool emptyCupOnTable = false; // Пустой стакан на столе
-        bool emptyCupItemOnTable = false; // Пустая кружка на столе
-        bool bookStackOnChair = false; // Стопка книг на кресле
+        bool chairAdjacentToTable = false;
+        bool tableAdjacentToChair = false;
+        bool isOnChair = false;
+        bool emptyCupOnTable = false;
+        bool emptyCupItemOnTable = false;
+        bool bookStackOnChair = false;
 
         // ОСОБАЯ ОБРАБОТКА ДЛЯ ЛАМПЫ
         if (shape is LampItem lamp)
         {
-            // СОХРАНЯЕМ ЛАМПУ В СЛОВАРЬ (НЕ УНИЧТОЖАЕМ)
             lampItems[itemId] = lamp;
-
             CheckLampInteractions(lamp);
 
-            // Сохраняем блок плафона (самый левый блок)
             foreach (Transform block in shape.transform)
             {
                 Vector2Int pos = WorldToGridPosition(block.position);
-                // Плафон - это блок с наименьшим X (самый левый)
                 if (pos.x < (int)lamp.transform.position.x)
                 {
                     SpriteRenderer sr = block.GetComponent<SpriteRenderer>();
@@ -424,13 +418,11 @@ public class FieldGrid : MonoBehaviour
                 }
             }
 
-            // Регистрируем блоки лампы в сетке (как обычные блоки)
             foreach (Transform block in currentBlocksToProcess)
             {
                 Vector2Int gridPos = WorldToGridPosition(block.position);
                 int gridX = gridPos.x;
                 int gridY = gridPos.y;
-
                 if (gridX >= 0 && gridX < 10 && gridY >= 0 && gridY < 20 && grid[gridX, gridY] == null)
                 {
                     grid[gridX, gridY] = block.gameObject;
@@ -451,17 +443,14 @@ public class FieldGrid : MonoBehaviour
                 itemTypes[itemId] = itemType;
             }
 
-            // НЕ УНИЧТОЖАЕМ ЛАМПУ, а просто отключаем
             lamp.gameObject.SetActive(false);
-
-            // Выходим из метода, чтобы не попасть в общий Destroy
             return;
         }
+
         // ОСОБАЯ ОБРАБОТКА ДЛЯ ПОЛКИ
         if (shape is ShelfItem shelf)
         {
             shelfItems[itemId] = shelf;
-            // НЕ сбрасываем поворот! Просто сохраняем
         }
 
         // ОСОБАЯ ОБРАБОТКА ДЛЯ EmptyCupItem (пустая кружка)
@@ -482,12 +471,9 @@ public class FieldGrid : MonoBehaviour
                 int gridX = gridPos.x;
                 int gridY = gridPos.y;
 
-                // ===== ПЕРЕНЕСИ ЛОГИ СЮДА =====
                 Debug.Log($"Текущие блоки столов в tableBlocks: {string.Join(", ", tableBlocks)}");
                 Debug.Log($"Проверка стола: ищу стол на позиции ({gridX}, {gridY - 1})");
                 Debug.Log($"tableBlocks содержит {new Vector2Int(gridX, gridY - 1)}? = {tableBlocks.Contains(new Vector2Int(gridX, gridY - 1))}");
-                // ==============================
-
                 Debug.Log($"Блок пустой кружки: ({block.position.x:F2}, {block.position.y:F2}) -> Сетка: ({gridX}, {gridY})");
 
                 if (gridX >= 0 && gridX < 10 && gridY >= 0 && gridY < 20)
@@ -500,39 +486,24 @@ public class FieldGrid : MonoBehaviour
                             gridY * fieldScale.y + fieldOffset.y,
                             -1f
                         );
-
                         grid[gridX, gridY] = cupInstance;
-
                         itemBlockPositions.Add(gridPos);
                         blockToItemId[gridPos] = itemId;
                         fixedBlocks++;
-
                         emptyCupItemBlocks.Add(new Vector2Int(gridX, gridY));
                         Debug.Log($"✓ Блок пустой кружки зафиксирован на ({gridX}, {gridY})");
 
-                        // Проверка: пустая кружка на столе
                         if (gridY > 0 && tableBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
                         {
                             emptyCupItemOnTable = true;
                             Debug.Log($"Пустая кружка стоит на столе!");
-
-                            // ===== ДОБАВЬ ЗДЕСЬ =====
                             if (AchievementManager.Instance != null)
-                            {
                                 AchievementManager.Instance.UnlockAchievement("empty_cup_on_table");
-                            }
-                            // ========================
                         }
                     }
-                    else
-                    {
-                        Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
-                    }
+                    else Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
                 }
-                else
-                {
-                    Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
-                }
+                else Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
             }
 
             if (itemBlockPositions.Count > 0)
@@ -543,14 +514,8 @@ public class FieldGrid : MonoBehaviour
             }
 
             Destroy(shape.gameObject);
-
-            // ПРОВЕРКА МИНУСА ЗА ПУСТУЮ КРУЖКУ НА СТОЛЕ
             if (emptyCupItemOnTable && powerScaleManager != null)
-            {
                 powerScaleManager.RemoveEmptyCupItemOnTable();
-                Debug.Log("Пустая кружка поставлена на стол! Шкала усиления уменьшилась.");
-            }
-
             Debug.Log($"Зафиксировано: {fixedBlocks}/1 блоков пустой кружки");
             return;
         }
@@ -572,7 +537,6 @@ public class FieldGrid : MonoBehaviour
                 Vector2Int gridPos = WorldToGridPosition(block.position);
                 int gridX = gridPos.x;
                 int gridY = gridPos.y;
-
                 Debug.Log($"Блок пустого стакана: ({block.position.x:F2}, {block.position.y:F2}) -> Сетка: ({gridX}, {gridY})");
 
                 if (gridX >= 0 && gridX < 10 && gridY >= 0 && gridY < 20)
@@ -585,37 +549,24 @@ public class FieldGrid : MonoBehaviour
                             gridY * fieldScale.y + fieldOffset.y,
                             -1f
                         );
-
                         grid[gridX, gridY] = cupInstance;
-
                         itemBlockPositions.Add(gridPos);
                         blockToItemId[gridPos] = itemId;
                         fixedBlocks++;
-
                         emptyCupBlocks.Add(new Vector2Int(gridX, gridY));
                         Debug.Log($"✓ Блок пустого стакана зафиксирован на ({gridX}, {gridY})");
 
-                        // Проверка: пустой стакан на столе
                         if (gridY > 0 && tableBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
                         {
                             emptyCupOnTable = true;
                             Debug.Log($"Пустой стакан стоит на столе!");
-
                             if (AchievementManager.Instance != null)
-                            {
                                 AchievementManager.Instance.UnlockAchievement("empty_pencil_cup_on_table");
-                            }
                         }
                     }
-                    else
-                    {
-                        Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
-                    }
+                    else Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
                 }
-                else
-                {
-                    Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
-                }
+                else Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
             }
 
             if (itemBlockPositions.Count > 0)
@@ -626,14 +577,8 @@ public class FieldGrid : MonoBehaviour
             }
 
             Destroy(shape.gameObject);
-
-            // ПРОВЕРКА МИНУСА ЗА ПУСТОЙ СТАКАН НА СТОЛЕ
             if (emptyCupOnTable && powerScaleManager != null)
-            {
                 powerScaleManager.RemoveEmptyCupOnTable();
-                Debug.Log("Пустой стакан поставлен на стол! Шкала усиления уменьшилась.");
-            }
-
             Debug.Log($"Зафиксировано: {fixedBlocks}/1 блоков пустого стакана");
             return;
         }
@@ -653,13 +598,11 @@ public class FieldGrid : MonoBehaviour
                 {
                     grid[gridX, gridY] = block.gameObject;
                     block.SetParent(null);
-
                     block.position = new Vector3(
                         gridX * fieldScale.x + fieldOffset.x,
                         gridY * fieldScale.y + fieldOffset.y,
                         -1f
                     );
-
                     itemBlockPositions.Add(gridPos);
                     blockToItemId[gridPos] = itemId;
                     fixedBlocks++;
@@ -667,157 +610,71 @@ public class FieldGrid : MonoBehaviour
                     if (isTable)
                     {
                         tableBlocks.Add(new Vector2Int(gridX, gridY));
-                        Debug.Log($"✓ Блок стола зафиксирован на ({gridX}, {gridY})");
-
-                        // НОВОЕ: проверяем, касается ли блок стола кресла сбоку
-                        if (IsTableBlockAdjacentToChair(gridX, gridY))
-                        {
-                            tableAdjacentToChair = true;
-                            Debug.Log($"Блок стола ({gridX}, {gridY}) касается кресла!");
-                        }
+                        if (IsTableBlockAdjacentToChair(gridX, gridY)) tableAdjacentToChair = true;
                     }
-
                     else if (isComputer)
                     {
                         computerBlocks.Add(new Vector2Int(gridX, gridY));
-                        Debug.Log($"✓ Блок компьютера зафиксирован на ({gridX}, {gridY})");
-
-                        // Проверяем, касается ли блок компьютера стола напрямую
-                        if (gridY > 0)
-                        {
-                            if (tableBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
-                            {
-                                computerTouchesTable = true;
-                                Debug.Log($"✓ Блок компьютера ({gridX}, {gridY}) касается стола!");
-                            }
-                        }
+                        if (gridY > 0 && tableBlocks.Contains(new Vector2Int(gridX, gridY - 1))) computerTouchesTable = true;
                     }
                     else if (isBookStack)
                     {
-                        // Сначала собираем позиции текущих блоков
                         HashSet<Vector2Int> currentBlocksSet = new HashSet<Vector2Int>();
                         foreach (Transform blk in currentBlocksToProcess)
-                        {
-                            Vector2Int pos = WorldToGridPosition(blk.position);
-                            currentBlocksSet.Add(pos);
-                        }
+                            currentBlocksSet.Add(WorldToGridPosition(blk.position));
 
-                        // Проверяем взаимодействия до добавления в bookStackBlocks
                         foreach (Transform blk in currentBlocksToProcess)
                         {
                             Vector2Int pos = WorldToGridPosition(blk.position);
-                            int gx = pos.x;
-                            int gy = pos.y;
-
-                            if (IsOnTable(gx, gy))
-                            {
-                                isOnTable = true;
-                                Debug.Log($"Стопка книг стоит на столе!");
-                            }
-
-                            // Проверяем, стоит ли на другой стопке книг (исключая текущую)
-                            if (gy > 0 && !currentBlocksSet.Contains(new Vector2Int(gx, gy - 1)) && bookStackBlocks.Contains(new Vector2Int(gx, gy - 1)))
-                            {
-                                isOnBookStack = true;
-                                Debug.Log($"Стопка книг стоит на другой стопке книг!");
-                            }
-
-                            // Проверяем, рядом ли с другой стопкой книг (исключая текущую)
+                            int gx = pos.x, gy = pos.y;
+                            if (IsOnTable(gx, gy)) isOnTable = true;
+                            if (gy > 0 && !currentBlocksSet.Contains(new Vector2Int(gx, gy - 1)) && bookStackBlocks.Contains(new Vector2Int(gx, gy - 1))) isOnBookStack = true;
                             if ((gx > 0 && !currentBlocksSet.Contains(new Vector2Int(gx - 1, gy)) && bookStackBlocks.Contains(new Vector2Int(gx - 1, gy))) ||
                                 (gx < 9 && !currentBlocksSet.Contains(new Vector2Int(gx + 1, gy)) && bookStackBlocks.Contains(new Vector2Int(gx + 1, gy))))
-                            {
                                 isAdjacentToBookStack = true;
-                                Debug.Log($"Стопка книг стоит рядом с другой стопкой книг!");
-                            }
-
                             if (gy > 0 && chairBlocks.Contains(new Vector2Int(gx, gy - 1)))
                             {
                                 bookStackOnChair = true;
-                                Debug.Log($"Стопка книг стоит на кресле!");
                                 isOnChair = true;
                             }
                         }
 
-                        // Теперь добавляем блоки в bookStackBlocks
                         foreach (Transform blk in currentBlocksToProcess)
-                        {
-                            Vector2Int pos = WorldToGridPosition(blk.position);
-                            bookStackBlocks.Add(pos);
-                            Debug.Log($"✓ Блок стопки книг зафиксирован на ({pos.x}, {pos.y})");
-                        }
+                            bookStackBlocks.Add(WorldToGridPosition(blk.position));
                     }
                     else if (isChair)
                     {
                         chairBlocks.Add(new Vector2Int(gridX, gridY));
-                        Debug.Log($"✓ Блок кресла {(isChairL ? "L" : "J")} зафиксирован на ({gridX}, {gridY})");
                     }
                     else if (isPlant)
                     {
                         plantBlocks.Add(new Vector2Int(gridX, gridY));
-                        Debug.Log($"✓ Блок растения зафиксирован на ({gridX}, {gridY})");
-
-                        // Проверяем все лампы на поле и обновляем их цвет
                         UpdateAllLampsAfterPlantPlaced();
                     }
                     else if (isLamp)
                     {
-                        // Просто добавляем блоки в сетку как обычные, но потом отдельно обработаем замену плафона
-                        // Ничего особого, просто сохраняем позиции
                         Debug.Log($"✓ Блок лампы зафиксирован на ({gridX}, {gridY})");
                     }
                     else
                     {
                         Debug.Log($"✓ Блок зафиксирован на ({gridX}, {gridY})");
 
-                        // Проверка взаимодействий для обычных фигур
-                        if (IsOnTable(gridX, gridY))
-                        {
-                            isOnTable = true;
-                        }
-
-                        if (IsOnComputer(gridX, gridY))
-                        {
-                            isOnComputer = true;
-                        }
-
-                        if (IsOnEmptyCup(gridX, gridY))
-                        {
-                            isOnEmptyCup = true;
-                        }
-
-                        if (IsOnEmptyCupItem(gridX, gridY))
-                        {
-                            isOnEmptyCupItem = true;
-                        }
-
-                        if (IsOnBookStack(gridX, gridY))
-                        {
-                            isOnBookStack = true;
-                            Debug.Log($"Обнаружено: блок стоит на стопке книг");
-                        }
-
-                        if (IsAdjacentToBookStack(gridX, gridY))  // ← 2 параметра  // ← добавить третий параметр
-                        {
-                            isAdjacentToBookStack = true;
-                            Debug.Log($"Обнаружено: блок рядом с стопкой книг");
-                        }
-
+                        if (IsOnTable(gridX, gridY)) isOnTable = true;
+                        if (IsOnComputer(gridX, gridY)) isOnComputer = true;
+                        if (IsOnEmptyCup(gridX, gridY)) isOnEmptyCup = true;
+                        if (IsOnEmptyCupItem(gridX, gridY)) isOnEmptyCupItem = true;
+                        if (IsOnBookStack(gridX, gridY)) isOnBookStack = true;
+                        if (IsAdjacentToBookStack(gridX, gridY)) isAdjacentToBookStack = true;
                         if (IsOnChair(gridX, gridY))
                         {
                             isOnChair = true;
-                            Debug.Log($"Обнаружено: блок стоит на кресле");
+                            CheckForItemsOnChair(shape);
                         }
                     }
                 }
-                else
-                {
-                    Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
-                }
+                else Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
             }
-            else
-            {
-                Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
-            }
+            else Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
         }
 
         if (itemBlockPositions.Count > 0)
@@ -826,47 +683,26 @@ public class FieldGrid : MonoBehaviour
             itemTypes[itemId] = itemType;
             Debug.Log($"Зарегистрирован предмет {itemId} (тип: {itemType.Name}) с {itemBlockPositions.Count} блоками");
         }
-        // ВАЖНО: ЭТОТ БЛОК ДОБАВИТЬ ПОСЛЕ ЦИКЛА foreach (Transform block in currentBlocksToProcess)
-        // и до вызова CheckAchievements
 
-        // Проверка: если ставим папку на полку
+        // ===== ОБРАБОТКА ПАПКИ НА ПОЛКЕ =====
         if (isFileFolder)
         {
-            // Получаем позицию папки (два блока)
             List<Vector2Int> folderPositions = new List<Vector2Int>();
             foreach (Transform block in currentBlocksToProcess)
-            {
                 folderPositions.Add(WorldToGridPosition(block.position));
-            }
 
-            // Проверяем, стоит ли папка на какой-то полке
-            // Папка занимает два блока по горизонтали, значит должна стоять на двух блоках полки
             if (folderPositions.Count == 2 && folderPositions[0].y == folderPositions[1].y)
             {
-                // Определяем, есть ли под папкой полка
                 Vector2Int belowPos1 = new Vector2Int(folderPositions[0].x, folderPositions[0].y - 1);
                 Vector2Int belowPos2 = new Vector2Int(folderPositions[1].x, folderPositions[1].y - 1);
-
-                // Находим ID предмета полки под папкой
                 string shelfItemId = null;
-                if (blockToItemId.ContainsKey(belowPos1))
-                {
-                    shelfItemId = blockToItemId[belowPos1];
-                }
-                else if (blockToItemId.ContainsKey(belowPos2))
-                {
-                    shelfItemId = blockToItemId[belowPos2];
-                }
+                if (blockToItemId.ContainsKey(belowPos1)) shelfItemId = blockToItemId[belowPos1];
+                else if (blockToItemId.ContainsKey(belowPos2)) shelfItemId = blockToItemId[belowPos2];
 
                 if (shelfItemId != null && itemTypes.ContainsKey(shelfItemId) && itemTypes[shelfItemId] == typeof(ShelfItem))
                 {
-                    // Находим компонент полки
                     ShelfItem foundShelf = null;
-                    if (shelfItems.ContainsKey(shelfItemId))
-                    {
-                        foundShelf = shelfItems[shelfItemId];
-                    }
-
+                    if (shelfItems.ContainsKey(shelfItemId)) foundShelf = shelfItems[shelfItemId];
                     if (foundShelf != null && foundShelf.IsHorizontal())
                     {
                         Vector2Int shelfLeftPos = GetShelfLeftPosition(shelfItemId);
@@ -874,162 +710,85 @@ public class FieldGrid : MonoBehaviour
                         {
                             int folderStartX = Mathf.Min(folderPositions[0].x, folderPositions[1].x);
                             int offset = folderStartX - shelfLeftPos.x;
-
-                            // Папка может стоять на любой позиции на полке (не важно где)
                             if (offset == 0 || offset == 1)
                             {
-                                // Заполняем ВСЮ полку (меняем все 3 спрайта)
                                 foundShelf.FillShelf();
-
-                                // Удаляем папку с поля
-                                foreach (Transform block in currentBlocksToProcess)
-                                {
-                                    Destroy(block.gameObject);
-                                }
+                                foreach (Transform block in currentBlocksToProcess) Destroy(block.gameObject);
                                 Destroy(shape.gameObject);
                                 return;
                             }
                         }
                     }
-                    // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОМ СТАКАНЕ (ВЕРТИКАЛЬНО)
-                    if (shape is LoosePencilsItem && isOnEmptyCup)
-                    {
-                        LoosePencilsItem pencils = shape as LoosePencilsItem;
-
-                        if (pencils != null && pencils.IsVerticalOrientation)
-                        {
-                            if (powerScaleManager != null)
-                            {
-                                powerScaleManager.AddPencilsOnEmptyCup();
-                                Debug.Log("✓ Карандаши поставлены на пустой стакан (вертикально)! Шкала усиления увеличилась.");
-                            }
-
-                            StartCoroutine(RemoveTouchingPencilsFromEmptyCupDelayed(pencils));
-                        }
-                        else if (pencils != null && !pencils.IsVerticalOrientation)
-                        {
-                            Debug.Log("✗ Карандаши на пустом стакане, но не вертикально - бонус не начислен");
-                        }
-                    }
-
-                    // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОЙ КРУЖКЕ (ВЕРТИКАЛЬНО)
-                    if (shape is LoosePencilsItem && isOnEmptyCupItem)
-                    {
-                        LoosePencilsItem pencils = shape as LoosePencilsItem;
-
-                        if (pencils != null && pencils.IsVerticalOrientation)
-                        {
-                            // УМЕНЬШАЕМ ШКАЛУ ЗА КАРАНДАШИ В КРУЖКЕ
-                            if (powerScaleManager != null)
-                            {
-                                float currentAmount = powerScaleManager.currentFillAmount;
-                                powerScaleManager.SetFillAmount(Mathf.Max(0, currentAmount - 0.15f));
-                                Debug.Log("✗ Карандаши вставлены в пустую кружку (вертикально)! Шкала усиления уменьшилась на 15%.");
-                            }
-
-                            StartCoroutine(RemoveTouchingPencilsFromEmptyCupItemDelayed(pencils));
-                        }
-                        else if (pencils != null && !pencils.IsVerticalOrientation)
-                        {
-                            Debug.Log("✗ Карандаши на пустой кружке, но не вертикально - эффект не срабатывает");
-                        }
-                    }
-
-                    // ПРОВЕРКА КОМПЬЮТЕРА НА СТОЛЕ
-                    if (isComputer && computerTouchesTable)
-                    {
-                        if (powerScaleManager != null)
-                        {
-                            powerScaleManager.AddComputerOnTable();
-                            Debug.Log("Компьютер поставлен на стол! Шкала усиления увеличилась.");
-                        }
-                    }
-
-                    // ПРОВЕРКА КРЕСЛА РЯДОМ СО СТОЛОМ
-                    if (isChair)
-                    {
-                        // Проверяем, касается ли кресло стола сбоку
-                        chairAdjacentToTable = IsChairAdjacentToTable();
-                        if (chairAdjacentToTable && powerScaleManager != null)
-                        {
-                            powerScaleManager.AddChairAdjacentToTable();
-                            Debug.Log($"Кресло {(isChairL ? "L" : "J")} поставлено рядом со столом! Шкала усиления увеличилась.");
-                        }
-                    }
-                    // НОВОЕ: ПРОВЕРКА СТОЛА РЯДОМ С КРЕСЛОМ
-                    if (isTable)
-                    {
-                        if (tableAdjacentToChair && powerScaleManager != null)
-                        {
-                            powerScaleManager.AddChairAdjacentToTable();
-                            Debug.Log($"Стол поставлен рядом с креслом! Шкала усиления увеличилась.");
-                        }
-                    }
-                    // ЛОГИКА ДЛЯ СТОПОК КНИГ
-                    if (isBookStack)
-                    {
-                        // Проверяем все возможные взаимодействия с новой стопкой книг
-                        CheckBookStackInteractions(shape);
-
-                        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: СТОПКА КНИГ НА КРЕСЛЕ
-                        if (bookStackOnChair && powerScaleManager != null)
-                        {
-                            powerScaleManager.RemoveBookStackOnChair();
-                            Debug.Log("Стопка книг поставлена на кресло! Шкала усиления уменьшилась.");
-                        }
-                    }
-                    else // Для обычных фигур
-                    {
-                        // Проверяем взаимодействия в зависимости от позиции
-                        if (isOnTable)
-                        {
-                            CheckForSpecialItemsOnTable(shape);
-                        }
-
-                        if (isOnComputer)
-                        {
-                            CheckForSpecialItemsOnComputer(shape);
-                        }
-
-                        if (isOnBookStack)
-                        {
-                            CheckForItemsOnBookStack(shape);
-                        }
-
-                        if (isAdjacentToBookStack)
-                        {
-                            CheckForItemsAdjacentToBookStack(shape);
-                        }
-
-                        if (isOnChair)
-                        {
-                            CheckForItemsOnChair(shape);
-                        }
-
-                    }
-                    // После блока проверок для стопки книг, кресел, столов и т.д.
-                    CheckAchievements(shape, isOnTable, isOnComputer, computerTouchesTable,
-                                      emptyCupOnTable, emptyCupItemOnTable, isBookStack,
-                                      isOnBookStack, isAdjacentToBookStack, isOnChair,
-                                      shape.GetType() == typeof(ChairItemL) || shape.GetType() == typeof(ChairItemJ));
-
-                    Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
-                    // Если это лампа - не уничтожаем, а только отключаем, чтобы сохранить компонент
-                    if (shape is LampItem)
-                    {
-                        shape.gameObject.SetActive(false);
-                    }
-                    else
-                    {
-                        Destroy(shape.gameObject);
-                    }
-
-
                 }
             }
         }
-    }
 
+        // ===== ОСНОВНЫЕ ПРОВЕРКИ ДЛЯ ВСЕХ ФИГУР (КРОМЕ УСПЕШНОЙ ПАПКИ) =====
+        // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОМ СТАКАНЕ
+        if (shape is LoosePencilsItem && isOnEmptyCup)
+        {
+            LoosePencilsItem pencils = shape as LoosePencilsItem;
+            if (pencils != null && pencils.IsVerticalOrientation)
+            {
+                if (powerScaleManager != null) powerScaleManager.AddPencilsOnEmptyCup();
+                StartCoroutine(RemoveTouchingPencilsFromEmptyCupDelayed(pencils));
+            }
+        }
+
+        // ПРОВЕРКА ДЛЯ КАРАНДАШЕЙ НА ПУСТОЙ КРУЖКЕ
+        if (shape is LoosePencilsItem && isOnEmptyCupItem)
+        {
+            LoosePencilsItem pencils = shape as LoosePencilsItem;
+            if (pencils != null && pencils.IsVerticalOrientation)
+            {
+                if (powerScaleManager != null)
+                {
+                    float currentAmount = powerScaleManager.currentFillAmount;
+                    powerScaleManager.SetFillAmount(Mathf.Max(0, currentAmount - 0.15f));
+                }
+                StartCoroutine(RemoveTouchingPencilsFromEmptyCupItemDelayed(pencils));
+            }
+        }
+
+        // ПРОВЕРКА КОМПЬЮТЕРА НА СТОЛЕ
+        if (isComputer && computerTouchesTable && powerScaleManager != null)
+            powerScaleManager.AddComputerOnTable();
+
+        // ПРОВЕРКА КРЕСЛА РЯДОМ СО СТОЛОМ
+        if (isChair)
+        {
+            chairAdjacentToTable = IsChairAdjacentToTable();
+            if (chairAdjacentToTable && powerScaleManager != null)
+                powerScaleManager.AddChairAdjacentToTable();
+        }
+        if (isTable && tableAdjacentToChair && powerScaleManager != null)
+            powerScaleManager.AddChairAdjacentToTable();
+
+        // ЛОГИКА ДЛЯ СТОПОК КНИГ
+        if (isBookStack)
+        {
+            CheckBookStackInteractions(shape);
+            if (bookStackOnChair && powerScaleManager != null)
+                powerScaleManager.RemoveBookStackOnChair();
+        }
+        else // Для обычных фигур
+        {
+            if (isOnTable) CheckForSpecialItemsOnTable(shape);
+            if (isOnComputer) CheckForSpecialItemsOnComputer(shape);
+            if (isOnBookStack) CheckForItemsOnBookStack(shape);
+            if (isAdjacentToBookStack) CheckForItemsAdjacentToBookStack(shape);
+            if (isOnChair) CheckForItemsOnChair(shape);
+        }
+
+        CheckAchievements(shape, isOnTable, isOnComputer, computerTouchesTable,
+                          emptyCupOnTable, emptyCupItemOnTable, isBookStack,
+                          isOnBookStack, isAdjacentToBookStack, isOnChair,
+                          shape is ChairItemL || shape is ChairItemJ);
+
+        Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
+        if (shape is LampItem) shape.gameObject.SetActive(false);
+        else Destroy(shape.gameObject);
+    }
     // НОВЫЙ МЕТОД: Проверка стоит ли блок на кресле
     private bool IsOnChair(int gridX, int gridY)
     {
@@ -1116,8 +875,25 @@ public class FieldGrid : MonoBehaviour
     // НОВЫЙ МЕТОД: Проверка предметов на кресле
     private void CheckForItemsOnChair(TetrisShape shape)
     {
-        // Здесь можно добавить логику для предметов, стоящих на кресле
         Debug.Log($"Предмет {shape.GetType().Name} стоит на кресле");
+
+        // Проверка: кружка с чаем на кресле
+        if (shape is CupItem cup)
+        {
+            var isFlippedField = typeof(CupItem).GetField("isFlipped",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (isFlippedField != null)
+            {
+                bool isFlipped = (bool)isFlippedField.GetValue(cup);
+                if (!isFlipped) // Непролитая кружка
+                {
+                    if (powerScaleManager != null)
+                        powerScaleManager.RemoveCupOnChair();
+                    if (AchievementManager.Instance != null)
+                        AchievementManager.Instance.UnlockAchievement("cup_on_chair");
+                }
+            }
+        }
     }
 
     // Корутины для задержанной обработки

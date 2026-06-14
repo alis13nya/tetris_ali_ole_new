@@ -1174,7 +1174,7 @@ RectTransform:
   m_Father: {fileID: 367546054}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 9, y: 0.00001335144}
   m_SizeDelta: {x: 47.7495, y: 0.0001}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1435,6 +1435,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b5ea540621372584d937f9971df60b6c, type: 2}
   - {fileID: 11400000, guid: 076206a0fb02cdb4b8ba7fc85a8a1db5, type: 2}
   - {fileID: 11400000, guid: 187b6ca872dff024ab88ea2ed1928788, type: 2}
+  - {fileID: 11400000, guid: cefdc7a65d51e6643a9ff1a2f6bcb123, type: 2}
 --- !u!4 &649164002
 Transform:
   m_ObjectHideFlags: 0
@@ -1939,7 +1940,7 @@ RectTransform:
   m_Father: {fileID: 1523182511}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 9, y: 0.00001335144}
   m_SizeDelta: {x: 47.7495, y: 0.0001}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2678,7 +2679,7 @@ RectTransform:
   m_Father: {fileID: 513634120}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2753,7 +2754,7 @@ RectTransform:
   m_Father: {fileID: 1823282277}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3733,6 +3734,7 @@ MonoBehaviour:
   spilledCupOnComputerRemove: 0.3
   bookStackOnBookStackAdd: 0.12
   pencilsOnEmptyCupAdd: 0.18
+  cupOnChairRemove: 0.15
   powerScaleSlider: {fileID: 2039550026}
   fillImage: {fileID: 1336767639}
   normalColor: {r: 0, g: 0, b: 1, a: 1}
@@ -4136,7 +4138,7 @@ RectTransform:
   m_Father: {fileID: 1917241082}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 9, y: 0.00001335144}
   m_SizeDelta: {x: 47.7495, y: 0.0001}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4476,7 +4478,7 @@ RectTransform:
   m_Father: {fileID: 2107034038}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4761,7 +4763,7 @@ RectTransform:
   m_Father: {fileID: 720757145}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 9, y: 0.00001335144}
   m_SizeDelta: {x: 47.7495, y: 0.0001}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5249,7 +5251,7 @@ RectTransform:
   m_Father: {fileID: 901714498}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5324,7 +5326,7 @@ RectTransform:
   m_Father: {fileID: 1610313380}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 9, y: 0.00001335144}
   m_SizeDelta: {x: 47.7495, y: 0.0001}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5544,7 +5546,7 @@ RectTransform:
   m_Father: {fileID: 928030003}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5857,7 +5859,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2042354253
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6490,6 +6492,11 @@ MonoBehaviour:
   - {fileID: 350713617315984594, guid: 81497ce9a7e850e4f943d07978c0c26f, type: 3}
   - {fileID: 5393453424951346788, guid: f6a52e02779694040b8397ad606d2c3e, type: 3}
   - {fileID: 7013973007318615535, guid: 074ca0fb358cf98479d77a0bea498ba3, type: 3}
+  - {fileID: 2950928195714092340, guid: af6ea0ec35ddb674b9d57822a4f37699, type: 3}
+  - {fileID: 8572463172115054492, guid: d70cdc07800f23d4f890a8a45d287428, type: 3}
+  - {fileID: 3046347883110040189, guid: 418c825b6600da34783408126b66e783, type: 3}
+  - {fileID: 3510424844500022246, guid: c6881ae3436576f4e92ba867dc2e5c53, type: 3}
+  - {fileID: 3757305309561588423, guid: f1043d0c20cbc1b40a33e9f3b4318b05, type: 3}
   shapePreviewSettings:
   - shapeName: BookStackItem
     previewPosition: {x: 9.8, y: 18.2, z: 0}
@@ -6521,6 +6528,18 @@ MonoBehaviour:
   - shapeName: EmptyCupItem
     previewPosition: {x: 9.7, y: 19.2, z: 0}
     previewScale: 1.8
+  - shapeName: LampItem
+    previewPosition: {x: 10, y: 18.8, z: 0}
+    previewScale: 0.9
+  - shapeName: ShelfItem
+    previewPosition: {x: 9.8, y: 19.2, z: 0}
+    previewScale: 0.75
+  - shapeName: FileFolderItem
+    previewPosition: {x: 9.2, y: 19.2, z: 0}
+    previewScale: 1.15
+  - shapeName: PrinterItem
+    previewPosition: {x: 9.2, y: 19.2, z: 0}
+    previewScale: 1.15
   defaultPreviewPosition: {x: 9, y: 19, z: -5}
   defaultPreviewScale: 0.7
   currentShape: {fileID: 8378738065402561988, guid: 0bc7f012a63f47140835b7072edd6efb, type: 3}
