@@ -30,7 +30,7 @@ public class ShelfItem : TetrisShape
         if (Mathf.Abs(angle - 180f) < 1f)
         {
             transform.rotation = Quaternion.identity;
-            UpdateShapeBlocks();
+            UpdateShapeBlocks(); // обновл€ем позиции блоков после поворота
             Debug.Log("ѕолка возвращена в нормальное положение (0∞)");
         }
     }
@@ -127,7 +127,7 @@ public class ShelfItem : TetrisShape
     public bool IsHorizontal()
     {
         float angle = transform.rotation.eulerAngles.z % 360f;
-        return Mathf.Abs(angle) < 1f;
+        return Mathf.Abs(angle) < 1f || Mathf.Abs(angle - 180f) < 1f;
     }
 
     public new void Move(Vector2 dir) { base.Move(dir); UpdateShapeBlocks(); }

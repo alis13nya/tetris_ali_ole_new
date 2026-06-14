@@ -1440,6 +1440,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9eef32611385833489cb1e3714d27534, type: 2}
   - {fileID: 11400000, guid: 62191e3d6e5e1bd4d87ee75b4e7da769, type: 2}
   - {fileID: 11400000, guid: ea8a8899f95bccf409d6c47564e649f4, type: 2}
+  - {fileID: 11400000, guid: ead4749c65926f242a990e869126fe6b, type: 2}
+  - {fileID: 11400000, guid: 05652b21d239a5845adcc175becef0d0, type: 2}
+  - {fileID: 11400000, guid: 1549c619558b6f84ca0ab14f3d9a0a03, type: 2}
+  - {fileID: 11400000, guid: 0926976231c169c4a874e11e1f1841e9, type: 2}
+  - {fileID: 11400000, guid: 039872cc67ac3664fb9eed368c6e275c, type: 2}
+  - {fileID: 11400000, guid: ba2a24e31f48dae4f87d971de842abb8, type: 2}
 --- !u!4 &649164002
 Transform:
   m_ObjectHideFlags: 0
@@ -3743,6 +3749,12 @@ MonoBehaviour:
   spilledCupOnBookStackRemove: 0.2
   spilledCupOnChairRemove: 0.2
   upsideDownPencilsRemove: 0.1
+  printerOnTableAdd: 0.2
+  plantOnTableAdd: 0.2
+  lampOnTableAdd: 0.1
+  lampNearPlantAdd: 0.2
+  fileFolderOnTableRemove: 0.1
+  fileFolderOnShelfAdd: 0.15
   powerScaleSlider: {fileID: 2039550026}
   fillImage: {fileID: 1336767639}
   normalColor: {r: 0, g: 0, b: 1, a: 1}

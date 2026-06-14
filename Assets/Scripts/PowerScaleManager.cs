@@ -74,6 +74,43 @@ public class PowerScaleManager : MonoBehaviour
     {
         ChangeFillAmount(-upsideDownPencilsRemove, $"Перевёрнутые карандаши (грифелем вниз): -{upsideDownPencilsRemove * 100}%");
     }
+    [Header("Настройки заполнения - ПРИНТЕР НА СТОЛЕ")]
+    public float printerOnTableAdd = 0.2f;
+    [Header("Настройки заполнения - ЦВЕТЫ НА СТОЛЕ")]
+    public float plantOnTableAdd = 0.1f;
+    [Header("Настройки заполнения - ЛАМПА НА СТОЛЕ")]
+    public float lampOnTableAdd = 0.1f;
+    [Header("Настройки заполнения - ЛАМПА РЯДОМ С РАСТЕНИЕМ")]
+    public float lampNearPlantAdd = 0.15f;
+    [Header("Настройки заполнения - ПАПКИ НА СТОЛЕ")]
+    public float fileFolderOnTableRemove = 0.1f;
+    [Header("Настройки заполнения - ПАПКИ НА ПОЛКЕ")]
+    public float fileFolderOnShelfAdd = 0.15f;
+
+    public void AddPrinterOnTable()
+    {
+        ChangeFillAmount(printerOnTableAdd, $"Принтер на столе: +{printerOnTableAdd * 100}%");
+    }
+    public void AddPlantOnTable()
+    {
+        ChangeFillAmount(plantOnTableAdd, $"Цветы на столе: +{plantOnTableAdd * 100}%");
+    }
+    public void AddLampOnTable()
+    {
+        ChangeFillAmount(lampOnTableAdd, $"Лампа на столе: +{lampOnTableAdd * 100}%");
+    }
+    public void AddLampNearPlant()
+    {
+        ChangeFillAmount(lampNearPlantAdd, $"Лампа рядом с растением: +{lampNearPlantAdd * 100}%");
+    }
+    public void RemoveFileFolderOnTable()
+    {
+        ChangeFillAmount(-fileFolderOnTableRemove, $"Папки на столе: -{fileFolderOnTableRemove * 100}%");
+    }
+    public void AddFileFolderOnShelf()
+    {
+        ChangeFillAmount(fileFolderOnShelfAdd, $"Папки на полке: +{fileFolderOnShelfAdd * 100}%");
+    }
 
     [Header("UI элементы")]
     public Slider powerScaleSlider;

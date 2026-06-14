@@ -37,6 +37,8 @@ public class FieldGrid : MonoBehaviour
     private HashSet<Vector2Int> emptyCupItemBlocks = new HashSet<Vector2Int>(); // Блоки пустых кружек
     private HashSet<Vector2Int> chairBlocks = new HashSet<Vector2Int>(); // НОВОЕ: блоки всех кресел
     private HashSet<Vector2Int> plantBlocks = new HashSet<Vector2Int>();
+    private HashSet<string> plantsWithLampBonus = new HashSet<string>();
+    private HashSet<string> lampsWithPlantBonus = new HashSet<string>();
     private Dictionary<string, LampItem> lampItems = new Dictionary<string, LampItem>();
     private Dictionary<Vector2Int, string> blockToItemId = new Dictionary<Vector2Int, string>();
     private Dictionary<string, HashSet<Vector2Int>> itemBlocks = new Dictionary<string, HashSet<Vector2Int>>();
@@ -243,16 +245,7 @@ public class FieldGrid : MonoBehaviour
                 AchievementManager.Instance.UnlockAchievement("pencils_on_empty_cup");
             }
         }
-        if (shape is LoosePencilsItem)
-        {
-            float angle = shape.transform.rotation.eulerAngles.z % 360f;
-            if (Mathf.Abs(angle - 180f) < 5f) // допуск 5 градусов
-            {
-                // достижение и шкала
-                if (powerScaleManager != null) powerScaleManager.RemoveUpsideDownPencils();
-                if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("nightmare_artist");
-            }
-        }
+        
         // Кружка с чаем на столе (непролитая)
         if (shape is CupItem && isOnTable)
         {
@@ -413,6 +406,7 @@ public class FieldGrid : MonoBehaviour
             lampItems[itemId] = lamp;
             CheckLampInteractions(lamp);
 
+            // Сохраняем блок плафона (самый левый блок)
             foreach (Transform block in shape.transform)
             {
                 Vector2Int pos = WorldToGridPosition(block.position);
@@ -429,6 +423,24 @@ public class FieldGrid : MonoBehaviour
                 }
             }
 
+            // === СОБИРАЕМ ПОЗИЦИИ ВСЕХ БЛОКОВ ЛАМПЫ ДО ОТКРЕПЛЕНИЯ ===
+            List<Vector2Int> allLampBlocks = new List<Vector2Int>();
+            foreach (Transform block in shape.transform)
+                allLampBlocks.Add(WorldToGridPosition(block.position));
+
+            // === БОНУС ЗА ЛАМПУ РЯДОМ С РАСТЕНИЕМ ===
+            if (!lampsWithPlantBonus.Contains(itemId))
+            {
+                if (IsLampNearPlantAny(allLampBlocks))
+                {
+                    lampsWithPlantBonus.Add(itemId);
+                    if (powerScaleManager != null) powerScaleManager.AddLampNearPlant();
+                    if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("lamp_near_plant");
+                    Debug.Log("=== Лампа рядом с растением! Бонус начислен. ===");
+                }
+            }
+
+            // Регистрируем блоки лампы в сетке (открепляем их)
             foreach (Transform block in currentBlocksToProcess)
             {
                 Vector2Int gridPos = WorldToGridPosition(block.position);
@@ -454,16 +466,55 @@ public class FieldGrid : MonoBehaviour
                 itemTypes[itemId] = itemType;
             }
 
+            // Начисляем бонус за лампу на столе (можно оставить здесь, он не зависит от открепления)
+            bool lampOnTable = false;
+            foreach (Vector2Int pos in allLampBlocks)
+                if (IsOnTable(pos.x, pos.y)) { lampOnTable = true; break; }
+            if (lampOnTable)
+            {
+                if (powerScaleManager != null) powerScaleManager.AddLampOnTable();
+                if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("lamp_on_table");
+                Debug.Log("Лампа на столе! Бонус начислен.");
+            }
+
             lamp.gameObject.SetActive(false);
             return;
         }
 
-        // ОСОБАЯ ОБРАБОТКА ДЛЯ ПОЛКИ
+        // ОСОБАЯ ОБРАБОТКА ДЛЯ ПОЛКИ (НЕ УНИЧТОЖАЕМ)
         if (shape is ShelfItem shelf)
         {
             shelfItems[itemId] = shelf;
-        }
 
+            // Регистрируем блоки полки в сетке (как обычные блоки)
+            foreach (Transform block in currentBlocksToProcess)
+            {
+                Vector2Int gridPos = WorldToGridPosition(block.position);
+                int gridX = gridPos.x;
+                int gridY = gridPos.y;
+                if (gridX >= 0 && gridX < 10 && gridY >= 0 && gridY < 20 && grid[gridX, gridY] == null)
+                {
+                    grid[gridX, gridY] = block.gameObject;
+                    block.SetParent(null);
+                    block.position = new Vector3(
+                        gridX * fieldScale.x + fieldOffset.x,
+                        gridY * fieldScale.y + fieldOffset.y,
+                        -1f
+                    );
+                    blockToItemId[gridPos] = itemId;
+                    itemBlockPositions.Add(gridPos);
+                }
+            }
+
+            if (itemBlockPositions.Count > 0)
+            {
+                itemBlocks[itemId] = itemBlockPositions;
+                itemTypes[itemId] = itemType;
+            }
+
+            shelf.gameObject.SetActive(false);
+            return;
+        }
         // ОСОБАЯ ОБРАБОТКА ДЛЯ EmptyCupItem (пустая кружка)
         if (isEmptyCupItem)
         {
@@ -482,11 +533,7 @@ public class FieldGrid : MonoBehaviour
                 int gridX = gridPos.x;
                 int gridY = gridPos.y;
 
-                Debug.Log($"Текущие блоки столов в tableBlocks: {string.Join(", ", tableBlocks)}");
-                Debug.Log($"Проверка стола: ищу стол на позиции ({gridX}, {gridY - 1})");
-                Debug.Log($"tableBlocks содержит {new Vector2Int(gridX, gridY - 1)}? = {tableBlocks.Contains(new Vector2Int(gridX, gridY - 1))}");
-                Debug.Log($"Блок пустой кружки: ({block.position.x:F2}, {block.position.y:F2}) -> Сетка: ({gridX}, {gridY})");
-
+                // ... лог ...
                 if (gridX >= 0 && gridX < 10 && gridY >= 0 && gridY < 20)
                 {
                     if (grid[gridX, gridY] == null)
@@ -507,21 +554,17 @@ public class FieldGrid : MonoBehaviour
                         if (gridY > 0 && tableBlocks.Contains(new Vector2Int(gridX, gridY - 1)))
                         {
                             emptyCupItemOnTable = true;
-                            Debug.Log($"Пустая кружка стоит на столе!");
                             if (AchievementManager.Instance != null)
                                 AchievementManager.Instance.UnlockAchievement("empty_cup_on_table");
                         }
                     }
-                    else Debug.Log($"✗ Позиция ({gridX}, {gridY}) уже занята!");
                 }
-                else Debug.Log($"✗ Позиция ({gridX}, {gridY}) вне границ!");
             }
 
             if (itemBlockPositions.Count > 0)
             {
                 itemBlocks[itemId] = itemBlockPositions;
                 itemTypes[itemId] = itemType;
-                Debug.Log($"Зарегистрирована пустая кружка {itemId} с {itemBlockPositions.Count} блоками");
             }
 
             Destroy(shape.gameObject);
@@ -530,7 +573,6 @@ public class FieldGrid : MonoBehaviour
             Debug.Log($"Зафиксировано: {fixedBlocks}/1 блоков пустой кружки");
             return;
         }
-
         // ОСОБАЯ ОБРАБОТКА ДЛЯ EmptyPencilCupItem (пустой стакан)
         if (isEmptyCup)
         {
@@ -660,8 +702,35 @@ public class FieldGrid : MonoBehaviour
                     else if (isPlant)
                     {
                         plantBlocks.Add(new Vector2Int(gridX, gridY));
+                        if (IsOnTable(gridX, gridY)) isOnTable = true;
+                        Debug.Log($"✓ Блок растения зафиксирован на ({gridX}, {gridY})");
                         UpdateAllLampsAfterPlantPlaced();
+
+                        // === НОВАЯ ПРОВЕРКА: БОНУС ЗА РАСТЕНИЕ РЯДОМ С ЛАМПОЙ ===
+                        // Собираем позиции всех блоков этого растения
+                        List<Vector2Int> plantPositions = new List<Vector2Int>();
+                        foreach (Transform blk in currentBlocksToProcess)
+                            plantPositions.Add(WorldToGridPosition(blk.position));
+                        Debug.Log($"Проверка бонуса для растения {itemId}, позиции: {string.Join(", ", plantPositions)}");
+                        // Проверяем, есть ли рядом лампа (используем существующий метод IsLampNearPlantAny, но передаём позиции растения)
+                        if (IsPlantNearLamp(plantPositions))
+                        {
+                            // Если бонус за это растение ещё не давали
+                            if (!plantsWithLampBonus.Contains(itemId))
+                            {
+                                plantsWithLampBonus.Add(itemId);
+                                if (powerScaleManager != null) powerScaleManager.AddLampNearPlant();
+                                if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("lamp_near_plant");
+                                Debug.Log("=== Растение рядом с лампой! Бонус начислен. ===");
+                            }
+                        }
                     }
+                    if (IsOnTable(gridX, gridY))
+                    {
+                        isOnTable = true;
+                        Debug.Log("Растение на столе!");
+                    }
+
                     else if (isLamp)
                     {
                         Debug.Log($"✓ Блок лампы зафиксирован на ({gridX}, {gridY})");
@@ -670,7 +739,13 @@ public class FieldGrid : MonoBehaviour
                     {
                         Debug.Log($"✓ Блок зафиксирован на ({gridX}, {gridY})");
 
-                        if (IsOnTable(gridX, gridY)) isOnTable = true;
+                        
+                        if (IsOnTable(gridX, gridY))
+                        {
+                            isOnTable = true;
+                            if (shape is PrinterItem) Debug.Log($"Принтер: блок на ({gridX},{gridY}) стоит на столе");
+                            if (shape is PlantItem) Debug.Log($"Растение: блок на ({gridX},{gridY}) стоит на столе");
+                        }
                         if (IsOnComputer(gridX, gridY)) isOnComputer = true;
                         if (IsOnEmptyCup(gridX, gridY)) isOnEmptyCup = true;
                         if (IsOnEmptyCupItem(gridX, gridY)) isOnEmptyCupItem = true;
@@ -724,6 +799,8 @@ public class FieldGrid : MonoBehaviour
                             if (offset == 0 || offset == 1)
                             {
                                 foundShelf.FillShelf();
+                                if (powerScaleManager != null) powerScaleManager.AddFileFolderOnShelf();
+                                if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("filefolder_on_shelf");
                                 foreach (Transform block in currentBlocksToProcess) Destroy(block.gameObject);
                                 Destroy(shape.gameObject);
                                 return;
@@ -764,7 +841,7 @@ public class FieldGrid : MonoBehaviour
         if (shape is LoosePencilsItem)
         {
             float angle = shape.transform.rotation.eulerAngles.z % 360f;
-            // Если фигура не повернута (0°), значит карандаши стоят грифелем вниз – штраф
+            // Если угол близок к 0° (исходное положение), то даём штраф и достижение
             if (Mathf.Abs(angle) < 5f)
             {
                 if (powerScaleManager != null)
@@ -1272,22 +1349,15 @@ public class FieldGrid : MonoBehaviour
     private bool IsOnTable(int gridX, int gridY)
     {
         if (gridY == 0) return false;
-
         if (gridY - 1 >= 0)
         {
             Vector2Int belowPos = new Vector2Int(gridX, gridY - 1);
-
-            // Если под предметом нейтральный блок — не считаем столом
             if (IsNeutralBlock(belowPos.x, belowPos.y))
                 return false;
-
-            if (tableBlocks.Contains(belowPos))
-            {
-                Debug.Log($"Блок на позиции ({gridX}, {gridY}) стоит на столе!");
-                return true;
-            }
+            bool onTable = tableBlocks.Contains(belowPos);
+            if (onTable) Debug.Log($"IsOnTable: блок ({gridX},{gridY}) стоит на столе (под ним {belowPos})");
+            return onTable;
         }
-
         return false;
     }
 
@@ -1746,6 +1816,29 @@ public class FieldGrid : MonoBehaviour
                     }
                 }
             }
+        }
+
+        // НОВЫЕ ПРОВЕРКИ
+        if (shape is PrinterItem)
+        {
+            if (powerScaleManager != null) powerScaleManager.AddPrinterOnTable();
+            if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("printer_on_table");
+            Debug.Log("Принтер на столе! Бонус начислен."); // добавьте для проверки
+        }
+        else if (shape is PlantItem)
+        {
+            if (powerScaleManager != null) powerScaleManager.AddPlantOnTable();
+            if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("plant_on_table");
+        }
+        else if (shape is LampItem)
+        {
+            if (powerScaleManager != null) powerScaleManager.AddLampOnTable();
+            if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("lamp_on_table");
+        }
+        else if (shape is FileFolderItem)
+        {
+            if (powerScaleManager != null) powerScaleManager.RemoveFileFolderOnTable();
+            if (AchievementManager.Instance != null) AchievementManager.Instance.UnlockAchievement("filefolder_on_table");
         }
     }
 
@@ -2227,7 +2320,8 @@ public class FieldGrid : MonoBehaviour
         lampState.Clear();
         plantBlocks.Clear();
         shelfItems.Clear();
-
+        plantsWithLampBonus.Clear();
+        lampsWithPlantBonus.Clear();
 
         Debug.Log("Поле очищено");
     }
@@ -2513,8 +2607,62 @@ public class FieldGrid : MonoBehaviour
             if (pos.x == minX) return pos;
         }
         return Vector2Int.zero;
+
     }
 
+
+    private bool IsPlantNearLamp(List<Vector2Int> plantPositions)
+    {
+        Debug.Log($"IsPlantNearLamp: plantPositions={plantPositions.Count}, lampItems.Count={lampItems.Count}");
+        foreach (var lamp in lampItems)
+        {
+            Debug.Log($"Лампа ID: {lamp.Key}, блоки: {string.Join(", ", itemBlocks[lamp.Key])}");
+        }
+        if (lampItems.Count == 0) return false;
+        foreach (var lampKvp in lampItems)
+        {
+            if (!itemBlocks.ContainsKey(lampKvp.Key)) continue;
+            List<Vector2Int> lampBlocks = new List<Vector2Int>(itemBlocks[lampKvp.Key]);
+            foreach (Vector2Int lampPos in lampBlocks)
+            {
+                foreach (Vector2Int plantPos in plantPositions)
+                {
+                    int dx = Mathf.Abs(lampPos.x - plantPos.x);
+                    int dy = Mathf.Abs(lampPos.y - plantPos.y);
+                    // Радиус: до 2 по горизонтали, до 1 по вертикали (как и для лампы)
+                    if (dx <= 2 && dy <= 1)
+                    {
+                        Debug.Log($"Растение на {plantPos} рядом с лампой на {lampPos}");
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    private bool IsLampNearPlantAny(List<Vector2Int> lampBlocks)
+    {
+        Debug.Log($"IsLampNearPlantAny: lampBlocks={lampBlocks.Count}, plantBlocks={plantBlocks.Count}");
+        if (plantBlocks.Count == 0) return false;
+        foreach (Vector2Int lampPos in lampBlocks)
+        {
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                for (int dy = -2; dy <= 2; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    Vector2Int checkPos = new Vector2Int(lampPos.x + dx, lampPos.y + dy);
+                    if (plantBlocks.Contains(checkPos))
+                    {
+                        Debug.Log($"Лампа на {lampPos} рядом с растением на {checkPos} (dx={dx}, dy={dy})");
+                        return true;
+                    }
+                }
+            }
+        }
+        Debug.Log("Растений рядом нет");
+        return false;
+    }
 }
 
 
