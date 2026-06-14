@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -56,6 +57,88 @@ public class GameManager : MonoBehaviour
     private bool isFastFalling = false;
     private bool isPaused = false;
 
+    [Header("Блокировка движения при штрафах")]
+    public GameObject redScreenPanel;      // Панель красного экрана (Image с черно-красным фоном)
+    public TextMeshProUGUI warningText;   // Текст предупреждения
+    public float redScreenBlinkDuration = 1.5f; // Длительность мигания
+    public float redScreenBlinkInterval = 0.2f; // Интервал мигания
+
+    private bool movementBlocked = false;
+    private Coroutine blinkCoroutine;
+
+    public static GameManager Instance { get; private set; }
+
+    void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+    }
+
+    private int blocksToSkip = 0;
+
+    public void BlockNextMovement()
+    {
+        if (movementBlocked) return;
+        movementBlocked = true;
+        blocksToSkip = 1;  // пропустить текущую фиксацию
+        Debug.Log($"BlockNextMovement: movementBlocked = true, blocksToSkip = {blocksToSkip}");
+
+        if (redScreenPanel != null)
+        {
+            redScreenPanel.SetActive(true);
+            if (blinkCoroutine != null) StopCoroutine(blinkCoroutine);
+            blinkCoroutine = StartCoroutine(BlinkRedScreen());
+        }
+        if (warningText != null)
+        {
+            warningText.gameObject.SetActive(true);
+            warningText.text = "Движение и вращение заблокированы!";
+        }
+    }
+
+    public void TryDisableMovementBlock()
+    {
+        if (blocksToSkip > 0)
+        {
+            blocksToSkip--;
+            Debug.Log($"TryDisableMovementBlock: пропускаем фиксацию, осталось пропустить: {blocksToSkip}");
+            return;
+        }
+        if (movementBlocked)
+        {
+            DisableMovementBlock();
+            Debug.Log("TryDisableMovementBlock: блокировка снята");
+        }
+    }
+
+    private IEnumerator BlinkRedScreen()
+    {
+        float elapsed = 0f;
+        bool visible = true;
+        CanvasGroup cg = redScreenPanel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = redScreenPanel.AddComponent<CanvasGroup>();
+
+        while (elapsed < redScreenBlinkDuration)
+        {
+            visible = !visible;
+            cg.alpha = visible ? 0.7f : 0f;
+            yield return new WaitForSeconds(redScreenBlinkInterval);
+            elapsed += redScreenBlinkInterval;
+        }
+        cg.alpha = 0f;
+    }
+
+
+    private void DisableMovementBlock()
+    {
+        movementBlocked = false;
+        if (redScreenPanel != null) redScreenPanel.SetActive(false);
+        if (warningText != null) warningText.gameObject.SetActive(false);
+        if (blinkCoroutine != null) StopCoroutine(blinkCoroutine);
+        Debug.Log("Блокировка движения снята.");
+    }
     void Start()
     {
         AspectRatioManager aspectManager = FindObjectOfType<AspectRatioManager>();
@@ -164,6 +247,7 @@ public class GameManager : MonoBehaviour
 
         if (keyboard != null)
         {
+            // Клавиши, которые работают всегда (ускоренное падение и способность)
             if (keyboard.downArrowKey.isPressed)
             {
                 isFastFalling = true;
@@ -180,49 +264,50 @@ public class GameManager : MonoBehaviour
                     powerScaleManager.UsePower();
                 }
             }
-
-            if (keyboard.leftArrowKey.wasPressedThisFrame && currentShape.CanMove(Vector2.left))
+            Debug.Log($"movementBlocked = {movementBlocked}");
+            // Движение и вращение (блокируются при штрафе)
+            if (!movementBlocked)
             {
-                currentShape.Move(Vector2.left);
-            }
-            if (keyboard.rightArrowKey.wasPressedThisFrame && currentShape.CanMove(Vector2.right))
-            {
-                currentShape.Move(Vector2.right);
-            }
-
-            if (keyboard.aKey.wasPressedThisFrame)
-            {
-                Debug.Log("Вращение влево (A)");
-                if (currentShape != null)
+                if (keyboard.leftArrowKey.wasPressedThisFrame && currentShape.CanMove(Vector2.left))
                 {
-                    currentShape.RotateLeft();
+                    currentShape.Move(Vector2.left);
                 }
-            }
-
-            if (keyboard.dKey.wasPressedThisFrame)
-            {
-                Debug.Log("Вращение вправо (D)");
-                if (currentShape != null)
+                if (keyboard.rightArrowKey.wasPressedThisFrame && currentShape.CanMove(Vector2.right))
                 {
-                    currentShape.RotateRight();
+                    currentShape.Move(Vector2.right);
                 }
-            }
-
-            if (keyboard.upArrowKey.wasPressedThisFrame)
-            {
-                Debug.Log("Вращение (стрелка вверх)");
-                PencilCupItem pencilCup = currentShape as PencilCupItem;
-                if (pencilCup != null)
+                if (keyboard.aKey.wasPressedThisFrame)
                 {
-                    pencilCup.RotateLeft();  // ← было SpillPencils(true), стало RotateLeft()
+                    Debug.Log("Вращение влево (A)");
+                    if (currentShape != null)
+                    {
+                        currentShape.RotateLeft();
+                    }
                 }
-                else if (currentShape is CupItem cupItem)
+                if (keyboard.dKey.wasPressedThisFrame)
                 {
-                    cupItem.RotateLeft();     // ← было SpillCup(true), стало RotateLeft()
+                    Debug.Log("Вращение вправо (D)");
+                    if (currentShape != null)
+                    {
+                        currentShape.RotateRight();
+                    }
                 }
-                else
+                if (keyboard.upArrowKey.wasPressedThisFrame)
                 {
-                    currentShape.RotateLeft(); // ← было Rotate(), стало RotateLeft()
+                    Debug.Log("Вращение (стрелка вверх)");
+                    PencilCupItem pencilCup = currentShape as PencilCupItem;
+                    if (pencilCup != null)
+                    {
+                        pencilCup.RotateLeft();
+                    }
+                    else if (currentShape is CupItem cupItem)
+                    {
+                        cupItem.RotateLeft();
+                    }
+                    else
+                    {
+                        currentShape.RotateLeft();
+                    }
                 }
             }
         }
@@ -523,6 +608,8 @@ public class GameManager : MonoBehaviour
         }
 
         GenerateNextShape();
+        // Снимаем блокировку движения после спавна новой фигуры
+        
     }
 
     public void RestartGame()

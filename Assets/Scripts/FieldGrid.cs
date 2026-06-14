@@ -141,6 +141,7 @@ public class FieldGrid : MonoBehaviour
         }
         return false;
     }
+
     void Start()
     {
         powerScaleManager = FindObjectOfType<PowerScaleManager>();
@@ -203,6 +204,10 @@ public class FieldGrid : MonoBehaviour
             bool isFlipped = (bool)typeof(CupItem).GetField("isFlipped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(cup);
             if (isFlipped)
                 AchievementManager.Instance.UnlockAchievement("spilled_cup_on_computer");
+
+            // БЛОКИРОВКА ДВИЖЕНИЯ СЛЕДУЮЩЕЙ ФИГУРЫ
+            if (GameManager.Instance != null)
+                GameManager.Instance.BlockNextMovement();
         }
 
         // 4. Стопка книг на столе
@@ -888,6 +893,10 @@ public class FieldGrid : MonoBehaviour
                           shape is ChairItemL || shape is ChairItemJ);
 
         Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
+        Debug.Log("LockShape: вызываем TryDisableMovementBlock");
+        // Снимаем блокировку движения после фиксации любой фигуры, если она была заблокирована
+        GameManager.Instance?.TryDisableMovementBlock();
+
         if (shape is LampItem) shape.gameObject.SetActive(false);
         else Destroy(shape.gameObject);
     }
@@ -1747,6 +1756,10 @@ public class FieldGrid : MonoBehaviour
                         powerScaleManager.RemoveSpilledCupOnBookStack();
                     if (AchievementManager.Instance != null)
                         AchievementManager.Instance.UnlockAchievement("spilled_cup_on_bookstack");
+
+                    // БЛОКИРОВКА ДВИЖЕНИЯ СЛЕДУЮЩЕЙ ФИГУРЫ
+                    if (GameManager.Instance != null)
+                        GameManager.Instance.BlockNextMovement();
                 }
             }
         }
@@ -1868,6 +1881,7 @@ public class FieldGrid : MonoBehaviour
                     {
                         powerScaleManager.RemoveSpilledCupOnComputer();
                         Debug.Log("Пролитая кружка поставлена на компьютер! Шкала усиления уменьшилась.");
+
                     }
                 }
             }
