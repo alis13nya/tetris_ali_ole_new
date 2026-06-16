@@ -8,4 +8,6 @@ public class AchievementData : ScriptableObject
     public string description;   // описание
     public Sprite icon;          // иконка
     public bool isPositive = true; // положительное или отрицательное (для окраски)
+    public bool isRecordAchievement; // true для достижения-рекорда
+    public int recordValue;          // текущее значение рекорда (только для isRecordAchievement = true)
 }

@@ -16,5 +16,7 @@ MonoBehaviour:
   title: "\u0417\u0430\u043A\u043E\u043D\u0447\u0438\u043B\u0438\u0441\u044C \u043A\u0430\u0440\u0430\u043D\u0434\u0430\u0448\u0438"
   description: "\u0437\u0430 \u043F\u0443\u0441\u0442\u043E\u0439 \u0441\u0442\u0430\u043A\u0430\u043D
     \u043D\u0430 \u0441\u0442\u043E\u043B\u0435"
-  icon: {fileID: 0}
+  icon: {fileID: 5224591985142748283, guid: 81f003971e2673e4795dc0ac68c2bc9e, type: 3}
   isPositive: 0
+  isRecordAchievement: 0
+  recordValue: 0

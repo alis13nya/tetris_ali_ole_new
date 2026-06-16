@@ -16,5 +16,7 @@ MonoBehaviour:
   title: "\u0410 \u0441\u0438\u0434\u0435\u0442\u044C \u0433\u0434\u0435?"
   description: "\u0417\u0430 \u043A\u0440\u0443\u0436\u043A\u0443 \u0441 \u0447\u0430\u0435\u043C
     \u043D\u0430 \u043A\u0440\u0435\u0441\u043B\u0435"
-  icon: {fileID: 0}
+  icon: {fileID: -1334626196160407265, guid: a5117c973aabb01498163ee2f4bb3e94, type: 3}
   isPositive: 0
+  isRecordAchievement: 0
+  recordValue: 0

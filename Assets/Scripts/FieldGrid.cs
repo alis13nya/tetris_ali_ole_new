@@ -482,8 +482,11 @@ public class FieldGrid : MonoBehaviour
                 Debug.Log("Лампа на столе! Бонус начислен.");
             }
 
+
             lamp.gameObject.SetActive(false);
             return;
+
+
         }
 
         // ОСОБАЯ ОБРАБОТКА ДЛЯ ПОЛКИ (НЕ УНИЧТОЖАЕМ)
@@ -730,6 +733,7 @@ public class FieldGrid : MonoBehaviour
                             }
                         }
                     }
+
                     if (IsOnTable(gridX, gridY))
                     {
                         isOnTable = true;
@@ -891,6 +895,8 @@ public class FieldGrid : MonoBehaviour
                           emptyCupOnTable, emptyCupItemOnTable, isBookStack,
                           isOnBookStack, isAdjacentToBookStack, isOnChair,
                           shape is ChairItemL || shape is ChairItemJ);
+        // === НОВАЯ ПРОВЕРКА ПЕРЕГРУЗКИ КОМПЬЮТЕРА ===
+        CheckComputerOverload();
 
         Debug.Log($"Зафиксировано: {fixedBlocks}/{currentBlocksToProcess.Count} блоков");
         Debug.Log("LockShape: вызываем TryDisableMovementBlock");
@@ -1908,10 +1914,8 @@ public class FieldGrid : MonoBehaviour
     private void QuickClearAnimation(int y)
     {
         // Воспроизводим звук удаления строки
-        if (lineClearSound != null)
-        {
-            AudioSource.PlayClipAtPoint(lineClearSound, Camera.main.transform.position, 0.3f);
-        }
+        if (lineClearSound != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlayEffectSound(lineClearSound);
         // Сначала показываем частицы
         for (int x = 0; x < 10; x++)
         {
@@ -2374,7 +2378,6 @@ public class FieldGrid : MonoBehaviour
                 basePos = pos;
                 found = true;
             }
-            // Запоминаем блок плафона (самый верхний)
             if (shadeBlock == null || pos.y > WorldToGridPosition(shadeBlock.transform.position).y)
             {
                 shadeBlock = block.gameObject;
@@ -2387,31 +2390,27 @@ public class FieldGrid : MonoBehaviour
             return;
         }
 
+        // Проверяем на столе
         bool onTable = (basePos.y > 0 && tableBlocks.Contains(new Vector2Int(basePos.x, basePos.y - 1)));
+
+        // Проверяем рядом с растением (используем обновлённый метод)
         bool nearPlant = IsLampNearPlantOnlyRight(allLampBlocks);
 
         Debug.Log($"Основание на {basePos}, на столе: {onTable}, растение СПРАВА: {nearPlant}");
 
-        // Сохраняем позицию плафона для будущих обновлений
         Vector2Int shadePos = WorldToGridPosition(shadeBlock.transform.position);
 
         if (nearPlant)
         {
             lamp.SetPurpleLight();
-            if (lampShadeSprites.ContainsKey(shadePos)) lampShadeSprites[shadePos] = lamp.purpleSprite;
-            if (lampState.ContainsKey(shadePos)) lampState[shadePos] = "purple";
         }
         else if (onTable)
         {
             lamp.SetYellowLight();
-            if (lampShadeSprites.ContainsKey(shadePos)) lampShadeSprites[shadePos] = lamp.yellowSprite;
-            if (lampState.ContainsKey(shadePos)) lampState[shadePos] = "yellow";
         }
         else
         {
             lamp.SetNormalLight();
-            if (lampShadeSprites.ContainsKey(shadePos)) lampShadeSprites[shadePos] = lamp.normalSprite;
-            if (lampState.ContainsKey(shadePos)) lampState[shadePos] = "normal";
         }
     }
 
@@ -2449,8 +2448,8 @@ public class FieldGrid : MonoBehaviour
     {
         Debug.Log("=== ПРОВЕРКА ЛАМП ПОСЛЕ УСТАНОВКИ РАСТЕНИЯ ===");
 
-        // Сначала собираем все ID ламп
-        HashSet<string> lampIds = new HashSet<string>();
+        // Собираем все ID ламп из itemTypes (надёжнее, чем lampItems)
+        List<string> lampIds = new List<string>();
         foreach (var item in itemTypes)
         {
             if (item.Value == typeof(LampItem))
@@ -2459,30 +2458,27 @@ public class FieldGrid : MonoBehaviour
             }
         }
 
-        Debug.Log($"Всего ламп в itemTypes: {lampIds.Count}");
+        Debug.Log($"Всего ламп на поле: {lampIds.Count}");
         Debug.Log($"Всего растений в plantBlocks: {plantBlocks.Count}");
 
-        foreach (var p in plantBlocks)
+        foreach (var plantPos in plantBlocks)
         {
-            Debug.Log($"Растение на {p}");
+            Debug.Log($"Растение на {plantPos}");
         }
 
-        // Для каждой лампы проверяем, есть ли рядом растение
         foreach (string lampId in lampIds)
         {
             if (!itemBlocks.ContainsKey(lampId)) continue;
 
             List<Vector2Int> lampBlocks = new List<Vector2Int>(itemBlocks[lampId]);
 
-            // Выводим все блоки лампы для отладки
             Debug.Log($"Блоки лампы {lampId}:");
             foreach (Vector2Int pos in lampBlocks)
             {
                 Debug.Log($"  Блок на ({pos.x}, {pos.y})");
             }
 
-            // НАХОДИМ БЛОК ПЛАФОНА (САМЫЙ ЛЕВЫЙ - МИНИМАЛЬНЫЙ X)
-            GameObject shadeBlock = null;
+            // Находим блок плафона (самый левый или с наименьшим X)
             Vector2Int shadePos = Vector2Int.zero;
             int minX = 100;
             foreach (Vector2Int pos in lampBlocks)
@@ -2493,37 +2489,20 @@ public class FieldGrid : MonoBehaviour
                     shadePos = pos;
                 }
             }
-            Debug.Log($"Плафон (самый левый) должен быть на ({shadePos.x}, {shadePos.y})");
 
-            if (shadePos != Vector2Int.zero && grid[shadePos.x, shadePos.y] != null)
-            {
-                shadeBlock = grid[shadePos.x, shadePos.y];
-            }
+            Debug.Log($"Плафон (самый левый) на ({shadePos.x}, {shadePos.y})");
 
-            if (shadeBlock == null) continue;
+            if (shadePos == Vector2Int.zero || shadePos.x >= 10 || shadePos.y >= 20) continue;
 
-            // Проверяем, есть ли растение рядом (справа от лампы)
-            bool nearPlant = false;
-            foreach (Vector2Int lampPos in lampBlocks)
-            {
-                foreach (Vector2Int plantPos in plantBlocks)
-                {
-                    int dx = lampPos.x - plantPos.x;
-                    int dy = Mathf.Abs(lampPos.y - plantPos.y);
+            if (grid[shadePos.x, shadePos.y] == null) continue;
 
-                    // Растение слева от лампы (plantPos.x < lampPos.x)
-                    // Расстояние 1-2 клетки по горизонтали, разница по вертикали 0-1
-                    if (dx >= 1 && dx <= 2 && dy <= 1)
-                    {
-                        nearPlant = true;
-                        Debug.Log($"Лампа на {lampPos} рядом с растением на {plantPos} (dx={dx}, dy={dy})");
-                        break;
-                    }
-                }
-                if (nearPlant) break;
-            }
+            SpriteRenderer sr = grid[shadePos.x, shadePos.y].GetComponent<SpriteRenderer>();
+            if (sr == null) continue;
 
-            // Находим основание для проверки стола (самый нижний блок)
+            // Проверяем, есть ли растение рядом
+            bool nearPlant = IsLampNearPlantOnlyRight(lampBlocks);
+
+            // Находим основание (самый нижний блок)
             Vector2Int basePos = Vector2Int.zero;
             int minY = 100;
             foreach (Vector2Int pos in lampBlocks)
@@ -2536,75 +2515,145 @@ public class FieldGrid : MonoBehaviour
             }
             bool onTable = (basePos.y > 0 && tableBlocks.Contains(new Vector2Int(basePos.x, basePos.y - 1)));
 
-            SpriteRenderer sr = shadeBlock.GetComponent<SpriteRenderer>();
-            if (sr != null)
+            // Меняем спрайт в зависимости от условий
+            if (nearPlant)
             {
-                // Ищем компонент лампы в сохранённых
-                LampItem foundLamp = null;
-                if (lampItems.ContainsKey(lampId))
+                // Ищем компонент лампы, чтобы получить purpleSprite
+                LampItem foundLamp = FindLampComponentAtPosition(shadePos);
+                if (foundLamp != null && foundLamp.purpleSprite != null)
                 {
-                    foundLamp = lampItems[lampId];
-                    Debug.Log($"Нашли лампу по ключу {lampId}");
+                    sr.sprite = foundLamp.purpleSprite;
+                    Debug.Log($"Лампа на {shadePos} стала ФИОЛЕТОВОЙ");
                 }
-                else
+            }
+            else if (onTable)
+            {
+                LampItem foundLamp = FindLampComponentAtPosition(shadePos);
+                if (foundLamp != null && foundLamp.yellowSprite != null)
                 {
-                    Debug.Log($"Ключ {lampId} не найден в lampItems");
-                    foreach (var lampKvp in lampItems)
-                    {
-                        if (itemBlocks.ContainsKey(lampKvp.Key) && itemBlocks[lampKvp.Key].Contains(shadePos))
-                        {
-                            foundLamp = lampKvp.Value;
-                            Debug.Log($"Нашли лампу через совпадение блоков! Ключ={lampKvp.Key}");
-                            break;
-                        }
-                    }
+                    sr.sprite = foundLamp.yellowSprite;
+                    Debug.Log($"Лампа на {shadePos} стала ЖЁЛТОЙ");
                 }
-
-                if (foundLamp != null)
+            }
+            else
+            {
+                LampItem foundLamp = FindLampComponentAtPosition(shadePos);
+                if (foundLamp != null && foundLamp.normalSprite != null)
                 {
-                    if (nearPlant)
-                    {
-                        if (foundLamp.purpleSprite != null)
-                        {
-                            sr.sprite = foundLamp.purpleSprite;
-                            Debug.Log($"Лампа на {shadePos} стала ФИОЛЕТОВОЙ");
-                        }
-                        else
-                        {
-                            Debug.LogError("purpleSprite = NULL!");
-                        }
-                    }
-                    else if (onTable)
-                    {
-                        if (foundLamp.yellowSprite != null)
-                        {
-                            sr.sprite = foundLamp.yellowSprite;
-                            Debug.Log($"Лампа на {shadePos} стала ЖЁЛТОЙ");
-                        }
-                        else
-                        {
-                            Debug.LogError("yellowSprite = NULL!");
-                        }
-                    }
-                    else
-                    {
-                        if (foundLamp.normalSprite != null)
-                        {
-                            sr.sprite = foundLamp.normalSprite;
-                            Debug.Log($"Лампа на {shadePos} стала НОРМАЛЬНОЙ");
-                        }
-                        else
-                        {
-                            Debug.LogError("normalSprite = NULL!");
-                        }
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"foundLamp = NULL! Лампа не найдена!");
+                    sr.sprite = foundLamp.normalSprite;
+                    Debug.Log($"Лампа на {shadePos} стала НОРМАЛЬНОЙ");
                 }
             }
         }
+    }
+    /// <summary>
+    /// Проверяет, не превышает ли количество блоков на компьютере лимит (8).
+    /// Если превышает — удаляет ТОЛЬКО этот компьютер, применяет гравитацию и начисляет штраф.
+    /// </summary>
+    private void CheckComputerOverload()
+    {
+        // Находим все компьютеры на поле
+        List<string> computerItemIds = new List<string>();
+        foreach (var kvp in itemTypes)
+        {
+            if (kvp.Value == typeof(ComputerItem))
+                computerItemIds.Add(kvp.Key);
+        }
+
+        if (computerItemIds.Count == 0) return;
+
+        string overloadedComputerId = null;
+        HashSet<Vector2Int> overloadedComputerBlocks = null;
+
+        // Для каждого компьютера проверяем количество блоков над ним
+        foreach (string computerId in computerItemIds)
+        {
+            if (!itemBlocks.ContainsKey(computerId)) continue;
+
+            HashSet<Vector2Int> computerPositions = itemBlocks[computerId];
+
+            // Собираем все блоки, которые находятся над этим компьютером
+            HashSet<Vector2Int> blocksAbove = new HashSet<Vector2Int>();
+
+            foreach (Vector2Int computerPos in computerPositions)
+            {
+                int x = computerPos.x;
+                int y = computerPos.y + 1;
+                while (y < 20 && grid[x, y] != null)
+                {
+                    // Проверяем, что блок не принадлежит самому компьютеру
+                    bool isComputerBlock = false;
+                    foreach (Vector2Int cp in computerPositions)
+                    {
+                        if (cp.x == x && cp.y == y)
+                        {
+                            isComputerBlock = true;
+                            break;
+                        }
+                    }
+                    if (!isComputerBlock)
+                    {
+                        blocksAbove.Add(new Vector2Int(x, y));
+                    }
+                    y++;
+                }
+            }
+
+            int totalBlocksAbove = blocksAbove.Count;
+            Debug.Log($"Компьютер {computerId} имеет {totalBlocksAbove} блоков над собой (лимит 8)");
+
+            if (totalBlocksAbove > 8)
+            {
+                overloadedComputerId = computerId;
+                overloadedComputerBlocks = computerPositions;
+                break; // удаляем только первый перегруженный компьютер
+            }
+        }
+
+        if (overloadedComputerId == null) return;
+
+        Debug.Log($"ПЕРЕГРУЗКА КОМПЬЮТЕРА {overloadedComputerId}! Удаляем компьютер и наказываем штрафом.");
+
+        // Анимация частиц для каждого блока компьютера
+        foreach (Vector2Int pos in overloadedComputerBlocks)
+        {
+            if (grid[pos.x, pos.y] != null && blockBreakParticle != null)
+            {
+                ParticleSystem particles = Instantiate(blockBreakParticle, grid[pos.x, pos.y].transform.position, Quaternion.identity);
+                particles.Play();
+                Destroy(particles.gameObject, 1f);
+            }
+        }
+
+        // Удаляем блоки компьютера из сетки
+        foreach (Vector2Int pos in overloadedComputerBlocks)
+        {
+            if (grid[pos.x, pos.y] != null)
+            {
+                Destroy(grid[pos.x, pos.y]);
+                grid[pos.x, pos.y] = null;
+            }
+            computerBlocks.Remove(pos);
+            blockToItemId.Remove(pos);
+        }
+
+        // Удаляем компьютер из словарей
+        itemBlocks.Remove(overloadedComputerId);
+        itemTypes.Remove(overloadedComputerId);
+
+        // Применяем гравитацию ко всем блокам (блоки, которые были на компьютере, упадут)
+        ApplyGravity();
+
+        // Штраф через PowerScaleManager
+        if (powerScaleManager != null)
+            powerScaleManager.RemoveComputerOverloaded();
+
+        // Отмечаем достижение
+        if (AchievementManager.Instance != null)
+            AchievementManager.Instance.UnlockAchievement("computer_overloaded");
+
+        // Проверяем линии после падения блоков
+        CheckAndClearLines();
     }
     private Vector2Int GetShelfLeftPosition(string shelfId)
     {
@@ -2627,23 +2676,40 @@ public class FieldGrid : MonoBehaviour
 
     private bool IsPlantNearLamp(List<Vector2Int> plantPositions)
     {
-        Debug.Log($"IsPlantNearLamp: plantPositions={plantPositions.Count}, lampItems.Count={lampItems.Count}");
-        foreach (var lamp in lampItems)
+        Debug.Log($"IsPlantNearLamp: plantPositions={plantPositions.Count}, проверяем лампы...");
+
+        // Собираем ВСЕ лампы из itemTypes, а не только из lampItems
+        List<string> lampIds = new List<string>();
+        foreach (var kvp in itemTypes)
         {
-            Debug.Log($"Лампа ID: {lamp.Key}, блоки: {string.Join(", ", itemBlocks[lamp.Key])}");
+            if (kvp.Value == typeof(LampItem))
+            {
+                lampIds.Add(kvp.Key);
+            }
         }
-        if (lampItems.Count == 0) return false;
-        foreach (var lampKvp in lampItems)
+
+        if (lampIds.Count == 0)
         {
-            if (!itemBlocks.ContainsKey(lampKvp.Key)) continue;
-            List<Vector2Int> lampBlocks = new List<Vector2Int>(itemBlocks[lampKvp.Key]);
+            Debug.Log("Ламп не найдено на поле");
+            return false;
+        }
+
+        Debug.Log($"Найдено ламп на поле: {lampIds.Count}");
+
+        foreach (string lampId in lampIds)
+        {
+            if (!itemBlocks.ContainsKey(lampId)) continue;
+
+            List<Vector2Int> lampBlocks = new List<Vector2Int>(itemBlocks[lampId]);
+
             foreach (Vector2Int lampPos in lampBlocks)
             {
                 foreach (Vector2Int plantPos in plantPositions)
                 {
                     int dx = Mathf.Abs(lampPos.x - plantPos.x);
                     int dy = Mathf.Abs(lampPos.y - plantPos.y);
-                    // Радиус: до 2 по горизонтали, до 1 по вертикали (как и для лампы)
+
+                    // Радиус: до 2 по горизонтали, до 1 по вертикали
                     if (dx <= 2 && dy <= 1)
                     {
                         Debug.Log($"Растение на {plantPos} рядом с лампой на {lampPos}");
@@ -2652,6 +2718,8 @@ public class FieldGrid : MonoBehaviour
                 }
             }
         }
+
+        Debug.Log("Растений рядом с лампами нет");
         return false;
     }
     private bool IsLampNearPlantAny(List<Vector2Int> lampBlocks)
@@ -2676,6 +2744,30 @@ public class FieldGrid : MonoBehaviour
         }
         Debug.Log("Растений рядом нет");
         return false;
+    }
+    private LampItem FindLampComponentAtPosition(Vector2Int pos)
+    {
+        if (!blockToItemId.ContainsKey(pos)) return null;
+
+        string itemId = blockToItemId[pos];
+        if (!itemTypes.ContainsKey(itemId) || itemTypes[itemId] != typeof(LampItem)) return null;
+
+        // Ищем лампу в сцене (не в lampItems, который может быть устаревшим)
+        LampItem[] allLamps = FindObjectsOfType<LampItem>();
+        foreach (LampItem lamp in allLamps)
+        {
+            // Проверяем, есть ли у этой лампы блок в нужной позиции
+            foreach (Transform block in lamp.transform)
+            {
+                Vector2Int blockPos = WorldToGridPosition(block.position);
+                if (blockPos.x == pos.x && blockPos.y == pos.y)
+                {
+                    return lamp;
+                }
+            }
+        }
+
+        return null;
     }
 }
 

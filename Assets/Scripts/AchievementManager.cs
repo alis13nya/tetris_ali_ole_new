@@ -4,7 +4,12 @@ using System.Linq;
 
 public class AchievementManager : MonoBehaviour
 {
+    private const string SAVE_KEY_BEST_SCORE = "BestScore";
+    private int bestScore = 0;
     public static AchievementManager Instance { get; private set; }
+
+    [Header("Настройки отображения")]
+    public Sprite defaultLockedIcon; // Иконка для неразблокированных достижений
 
     [Header("Список всех достижений")]
     public List<AchievementData> allAchievements;
@@ -29,7 +34,22 @@ public class AchievementManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    public Sprite GetAchievementIcon(string id)
+    {
+        AchievementData ach = allAchievements.Find(a => a.id == id);
+        if (ach == null) return null;
 
+        bool isUnlocked = IsUnlocked(id);
+
+        if (isUnlocked && ach.icon != null)
+        {
+            return ach.icon;
+        }
+        else
+        {
+            return defaultLockedIcon;
+        }
+    }
     // Разблокировать достижение
     public void UnlockAchievement(string id)
     {
@@ -128,8 +148,19 @@ public class AchievementManager : MonoBehaviour
         unlockedStates.Clear();
         viewedAchievements.Clear();
         hasUnviewedUnlocks = false;
+
+        // Сброс рекорда
+        bestScore = 0;
+
+        // Обновляем поле recordValue в AchievementData (если используется)
+        AchievementData recordAch = allAchievements.Find(a => a.id == "high_score");
+        if (recordAch != null)
+        {
+            recordAch.recordValue = 0;
+        }
+
         Save();
-        Debug.Log("Все достижения сброшены");
+        Debug.Log("Все достижения и рекорд сброшены");
     }
 
     private void Load()
@@ -162,6 +193,7 @@ public class AchievementManager : MonoBehaviour
                 break;
             }
         }
+        bestScore = PlayerPrefs.GetInt(SAVE_KEY_BEST_SCORE, 0);
     }
 
     private void Save()
@@ -179,6 +211,7 @@ public class AchievementManager : MonoBehaviour
         PlayerPrefs.SetString(SAVE_KEY_VIEWED, viewedJson);
 
         PlayerPrefs.Save();
+        PlayerPrefs.SetInt(SAVE_KEY_BEST_SCORE, bestScore);
     }
 
     private string GetAchievementTitle(string id)
@@ -187,9 +220,73 @@ public class AchievementManager : MonoBehaviour
         return ach != null ? ach.title : id;
     }
 
+    public string GetAchievementDisplayText(string id)
+    {
+        AchievementData ach = allAchievements.Find(a => a.id == id);
+        if (ach == null) return "";
+
+        if (ach.isRecordAchievement)
+        {
+            return $"Ваш рекорд: {bestScore}";
+        }
+        else
+        {
+            return ach.description;
+        }
+    }
     [System.Serializable]
     private class AchievementSaveData
     {
         public List<string> achievements = new List<string>();
+    }
+
+    public void CheckHighScore(int newScore)
+    {
+        if (newScore <= bestScore) return;
+
+        bestScore = newScore;
+        Save();
+
+        // Находим достижение-рекорд
+        AchievementData recordAch = allAchievements.Find(a => a.id == "high_score");
+        if (recordAch == null)
+        {
+            Debug.LogWarning("Достижение 'high_score' не найдено!");
+            return;
+        }
+
+        // Если достижение ещё не разблокировано – разблокируем
+        if (!IsUnlocked("high_score"))
+        {
+            UnlockAchievement("high_score");
+        }
+        else
+        {
+            // Уже разблокировано – помечаем как непросмотренное (чтобы появился NEW)
+            if (viewedAchievements.Contains("high_score"))
+            {
+                viewedAchievements.Remove("high_score");
+                hasUnviewedUnlocks = true;
+                Save();
+            }
+        }
+
+        // *** ВАЖНО: обновляем поле recordValue в AchievementData, если оно используется для отображения
+        recordAch.recordValue = bestScore;
+
+        // *** ДОПОЛНИТЕЛЬНО: вызываем событие обновления UI для достижений, если панель открыта
+        AchievementsUI ui = FindObjectOfType<AchievementsUI>();
+        if (ui != null && ui.IsPanelOpen)
+        {
+            ui.RefreshAchievementsList(); // добавим этот метод позже
+        }
+
+        Debug.Log($"🏆 НОВЫЙ РЕКОРД: {bestScore}!");
+    }
+
+    // Получить текущий рекорд
+    public int GetBestScore()
+    {
+        return bestScore;
     }
 }

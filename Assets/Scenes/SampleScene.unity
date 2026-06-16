@@ -1508,7 +1508,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85053a9fad71d20438a8377a2d8b1eec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
+  defaultLockedIcon: {fileID: -4786212468642169599, guid: 355baabf2e77d3f4ea61e860ffe2c569, type: 3}
   allAchievements:
+  - {fileID: 11400000, guid: f71ce17563e41574b80222ecc4ea4316, type: 2}
   - {fileID: 11400000, guid: 8a0270dbb6f5cd34ca39a6e090b65f68, type: 2}
   - {fileID: 11400000, guid: 15d79774c47cb2946a3b8148b9896a4b, type: 2}
   - {fileID: 11400000, guid: 513112e4c5bec2e4cbeddaebc5172dd8, type: 2}
@@ -1536,6 +1538,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0926976231c169c4a874e11e1f1841e9, type: 2}
   - {fileID: 11400000, guid: 039872cc67ac3664fb9eed368c6e275c, type: 2}
   - {fileID: 11400000, guid: ba2a24e31f48dae4f87d971de842abb8, type: 2}
+  - {fileID: 11400000, guid: e0dbbd608c281564b8d522c699c3e56b, type: 2}
 --- !u!4 &649164002
 Transform:
   m_ObjectHideFlags: 0
@@ -3318,6 +3321,71 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1194737077}
   m_CullTransparentMesh: 1
+--- !u!1 &1207707283
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1207707285}
+  - component: {fileID: 1207707284}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1207707284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1207707283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e479a51834afa49b999945a375530d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  positiveSource: {fileID: 0}
+  negativeSource: {fileID: 0}
+  musicSource: {fileID: 0}
+  effectsSource: {fileID: 0}
+  positiveTestSound: {fileID: 0}
+  negativeTestSound: {fileID: 0}
+  musicTestSound: {fileID: 0}
+  effectsTestSound: {fileID: 0}
+  defaultMasterVolume: 0.8
+  defaultPositiveVolume: 0.8
+  defaultNegativeVolume: 0.8
+  defaultMusicVolume: 0.6
+  defaultEffectsVolume: 0.8
+  settingsPanel: {fileID: 2042354252}
+  openSettingsButton: {fileID: 201867934}
+  closeSettingsButton: {fileID: 1686193300}
+  masterSlider: {fileID: 663449824}
+  positiveSlider: {fileID: 2074167899}
+  negativeSlider: {fileID: 1440930926}
+  musicSlider: {fileID: 2051010108}
+  effectsSlider: {fileID: 395971935}
+--- !u!4 &1207707285
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1207707283}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 443.49432, y: 1230.5686, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1214724430
 GameObject:
   m_ObjectHideFlags: 0
@@ -3982,6 +4050,7 @@ MonoBehaviour:
   lampNearPlantAdd: 0.2
   fileFolderOnTableRemove: 0.1
   fileFolderOnShelfAdd: 0.15
+  computerOverloadRemove: 0.2
   powerScaleSlider: {fileID: 2039550026}
   fillImage: {fileID: 1336767639}
   normalColor: {r: 0, g: 0, b: 1, a: 1}
@@ -6100,9 +6169,10 @@ GameObject:
   - component: {fileID: 2042354253}
   - component: {fileID: 2042354255}
   - component: {fileID: 2042354254}
+  - component: {fileID: 2042354256}
   m_Layer: 5
-  m_Name: Nastroki_panel
-  m_TagString: Untagged
+  m_Name: SettingsPanel
+  m_TagString: SettingsPanel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6171,6 +6241,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2042354252}
   m_CullTransparentMesh: 1
+--- !u!114 &2042354256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042354252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dee690349b0129d49a2ba08d41b31d96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsPanel
 --- !u!1 &2051010106
 GameObject:
   m_ObjectHideFlags: 0
@@ -6744,6 +6826,35 @@ MonoBehaviour:
   - {fileID: 3046347883110040189, guid: 418c825b6600da34783408126b66e783, type: 3}
   - {fileID: 3510424844500022246, guid: c6881ae3436576f4e92ba867dc2e5c53, type: 3}
   - {fileID: 3757305309561588423, guid: f1043d0c20cbc1b40a33e9f3b4318b05, type: 3}
+  - {fileID: 3184326195810304734, guid: 0bc7f012a63f47140835b7072edd6efb, type: 3}
+  - {fileID: 2433769085936635996, guid: ada5a6a707121a941b7c27840858c807, type: 3}
+  - {fileID: 3583689380469885800, guid: 6f38d236cdc36904da1f80fc0c4f4266, type: 3}
+  - {fileID: 7196354383520945832, guid: 8b77271684fe14b49bfbaa312d966c0a, type: 3}
+  classicShapeChance: 0.15
+  classicShapePrefabs:
+  - {fileID: 3184326195810304734, guid: 0bc7f012a63f47140835b7072edd6efb, type: 3}
+  - {fileID: 7674381369628174672, guid: 334104757a00b444690cdc1aca87b081, type: 3}
+  - {fileID: 2433769085936635996, guid: ada5a6a707121a941b7c27840858c807, type: 3}
+  - {fileID: 4537227506963769775, guid: 9f3da1d38c6a4f549a5db97602255a1a, type: 3}
+  - {fileID: 4632898633968521770, guid: 8c3e9208dbbaaf146874e98ef05df09f, type: 3}
+  itemShapePrefabs:
+  - {fileID: 4930980980347408638, guid: 57871a6499bf9144bb24973180c59e11, type: 3}
+  - {fileID: 5840235959967268779, guid: 7e8d7e0a9f5090f4d810b82bf55df581, type: 3}
+  - {fileID: 4118674393221628282, guid: efd197f0d220c6746a6d108d9c72f59a, type: 3}
+  - {fileID: 2519934562876702204, guid: 693664920fcab744aaf493917aa3dfc4, type: 3}
+  - {fileID: 3641951007810755622, guid: 0d05df10b6558d545898a4baf93a426e, type: 3}
+  - {fileID: 7013973007318615535, guid: 074ca0fb358cf98479d77a0bea498ba3, type: 3}
+  - {fileID: 5393453424951346788, guid: f6a52e02779694040b8397ad606d2c3e, type: 3}
+  - {fileID: 350713617315984594, guid: 81497ce9a7e850e4f943d07978c0c26f, type: 3}
+  - {fileID: 9023054278992346604, guid: 47aad4e2636332c45a30a15a4c4d656b, type: 3}
+  - {fileID: 2950928195714092340, guid: af6ea0ec35ddb674b9d57822a4f37699, type: 3}
+  - {fileID: 7081896228467996000, guid: 566443169f11fab45a2b637c6cf9e893, type: 3}
+  - {fileID: 3510424844500022246, guid: c6881ae3436576f4e92ba867dc2e5c53, type: 3}
+  - {fileID: 3510424844500022246, guid: c6881ae3436576f4e92ba867dc2e5c53, type: 3}
+  - {fileID: 3046347883110040189, guid: 418c825b6600da34783408126b66e783, type: 3}
+  - {fileID: 8572463172115054492, guid: d70cdc07800f23d4f890a8a45d287428, type: 3}
+  - {fileID: 3757305309561588423, guid: f1043d0c20cbc1b40a33e9f3b4318b05, type: 3}
+  interactionBonusWeight: 3
   shapePreviewSettings:
   - shapeName: BookStackItem
     previewPosition: {x: 9.8, y: 18.2, z: 0}
@@ -6770,7 +6881,7 @@ MonoBehaviour:
     previewPosition: {x: 9.7, y: 19.2, z: 0}
     previewScale: 1.8
   - shapeName: LoosePencilsItem
-    previewPosition: {x: 9.8, y: 18.8, z: 0}
+    previewPosition: {x: 9.8, y: 20, z: 0}
     previewScale: 1.15
   - shapeName: EmptyCupItem
     previewPosition: {x: 9.7, y: 19.2, z: 0}
@@ -6832,3 +6943,4 @@ SceneRoots:
   - {fileID: 1712305709}
   - {fileID: 1293670652}
   - {fileID: 649164002}
+  - {fileID: 1207707285}

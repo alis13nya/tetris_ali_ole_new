@@ -49,5 +49,5 @@ MonoBehaviour:
   - {x: 1, y: 0}
   - {x: 2, y: 0}
   - {x: 3, y: 0}
-  shapeColor: {r: 0, g: 0.9706273, b: 1, a: 1}
-  blockPrefab: {fileID: 9077802966353536098, guid: 6d23334d4385b53418d3cdc612ca82c1, type: 3}
+  shapeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockPrefab: {fileID: 9077802966353536098, guid: ce94ada98f0766142b3951679d315496, type: 3}

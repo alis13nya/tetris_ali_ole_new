@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 870de5b2277e28a4190d2a52b7c5a861, type: 3}
   m_Name: computer_overloaded
   m_EditorClassIdentifier: Assembly-CSharp::AchievementData
-  id: 
-  title: 
-  description: 
-  icon: {fileID: 0}
-  isPositive: 1
+  id: computer_overloaded
+  title: "\u041F\u0435\u0440\u0435\u0433\u0440\u0443\u0437\u043A\u0430 \u043A\u043E\u043C\u043F\u044C\u044E\u0442\u0435\u0440\u0430"
+  description: "\u0417\u0430 \u0442\u044F\u0436\u0435\u043B\u044B\u0435 \u043F\u0440\u0435\u0434\u043C\u0435\u0442\u044B
+    \u043D\u0430 \u043A\u043E\u043C\u043F\u044C\u044E\u0442\u0435\u0440\u0435 (\u0431\u043E\u043B\u0435\u0435
+    8 \u0431\u043B\u043E\u043A\u043E\u0432)"
+  icon: {fileID: -3738137375266669083, guid: 6d0259e60cdc401479a335015e76b463, type: 3}
+  isPositive: 0
+  isRecordAchievement: 0
+  recordValue: 0

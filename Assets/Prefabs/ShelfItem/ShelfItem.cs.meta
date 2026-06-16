@@ -1,2 +1,18 @@
 fileFormatVersion: 2
 guid: 9475615e5e878ff46938c2c558e1e60a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - blockPrefab: {instanceID: 0}
+  - leftPartPrefab: {fileID: 1021262345504234110, guid: b655899107408704393fe5e7033c6672, type: 3}
+  - middlePartPrefab: {fileID: 1315503775453337902, guid: 8aa447d654f0acd42825c397da8a5035, type: 3}
+  - rightPartPrefab: {fileID: 3792743767833120251, guid: 2a918ac28e19a5c4eb067ca7cc72259a, type: 3}
+  - leftWithFolderSprite: {fileID: -4688201637222627097, guid: e7680b264283f7e4cabde2d4fa928934, type: 3}
+  - middleWithFolderSprite: {fileID: -1857420407951642094, guid: 0802f96d3842d2c49846953075433f79, type: 3}
+  - rightWithFolderSprite: {fileID: 8795062270455623464, guid: 184df18886b1c0a4ab3edd80f08887a3, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

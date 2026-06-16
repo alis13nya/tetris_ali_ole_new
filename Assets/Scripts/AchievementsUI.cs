@@ -32,7 +32,7 @@ public class AchievementsUI : MonoBehaviour
     private Dictionary<string, Coroutine> fadeCoroutines = new Dictionary<string, Coroutine>();
     private const float VIEW_DELAY = 5f;
     private const float FADE_DURATION = 0.5f;
-    private bool isPanelOpen = false;
+    public bool IsPanelOpen { get; private set; } = false;
 
     void Start()
     {
@@ -58,7 +58,7 @@ public class AchievementsUI : MonoBehaviour
 
     void Update()
     {
-        if (isPanelOpen && achievementItems.Count > 0)
+        if (IsPanelOpen && achievementItems.Count > 0)
         {
             CheckVisibleAchievements();
         }
@@ -69,7 +69,7 @@ public class AchievementsUI : MonoBehaviour
         if (achievementsPanel != null)
         {
             achievementsPanel.SetActive(true);
-            isPanelOpen = true;
+            IsPanelOpen = true;
             PopulateAchievementsList();
             UpdateExclamationMark();
         }
@@ -83,7 +83,7 @@ public class AchievementsUI : MonoBehaviour
             MarkAllVisibleAsViewed();
 
             achievementsPanel.SetActive(false);
-            isPanelOpen = false;
+            IsPanelOpen = false;
         }
     }
 
@@ -110,6 +110,12 @@ public class AchievementsUI : MonoBehaviour
             bool isUnlocked = AchievementManager.Instance.IsUnlocked(achievement.id);
             bool isViewed = AchievementManager.Instance.IsViewed(achievement.id);
 
+            // Для рекордного достижения оно всегда считается "разблокированным" после первого рекорда
+            if (achievement.isRecordAchievement && AchievementManager.Instance.GetBestScore() > 0)
+            {
+                isUnlocked = true;
+            }
+
             GameObject item = CreateAchievementItem(achievement, isUnlocked);
             achievementItems[achievement.id] = item;
             wasViewed[achievement.id] = isViewed;
@@ -127,6 +133,50 @@ public class AchievementsUI : MonoBehaviour
             achievementsScrollRect.verticalNormalizedPosition = 1f;
         }
     }
+    public void RefreshAchievementsList()
+    {
+        if (!IsPanelOpen) return;
+
+        foreach (var achievement in AchievementManager.Instance.GetAllAchievements())
+        {
+            if (achievementItems.ContainsKey(achievement.id))
+            {
+                GameObject item = achievementItems[achievement.id];
+                bool isUnlocked = AchievementManager.Instance.IsUnlocked(achievement.id);
+                bool isViewed = AchievementManager.Instance.IsViewed(achievement.id);
+
+                // Для рекордного достижения обновляем текст описания
+                if (achievement.isRecordAchievement)
+                {
+                    TextMeshProUGUI descText = item.transform.Find("DescriptionText")?.GetComponent<TextMeshProUGUI>();
+                    if (descText != null)
+                    {
+                        int currentRecord = AchievementManager.Instance.GetBestScore();
+                        descText.text = $"Ваш рекорд: {currentRecord}";
+                    }
+                }
+
+                // Управление NEW бейджем
+                if (isUnlocked && !isViewed)
+                {
+                    if (!newBadges.ContainsKey(achievement.id))
+                    {
+                        AddNewBadge(achievement.id, item);
+                    }
+                }
+                else
+                {
+                    // Если достижение просмотрено или не разблокировано – удаляем бейдж
+                    if (newBadges.ContainsKey(achievement.id))
+                    {
+                        RemoveNewBadge(achievement.id);
+                    }
+                }
+            }
+        }
+
+        UpdateExclamationMark();
+    }
 
     GameObject CreateAchievementItem(AchievementData data, bool isUnlocked)
     {
@@ -136,9 +186,17 @@ public class AchievementsUI : MonoBehaviour
         spawnedItems.Add(item);
 
         Image achievementIcon = item.transform.Find("AchievementIcon")?.GetComponent<Image>();
-        if (achievementIcon != null && data.icon != null && isUnlocked)
+        if (achievementIcon != null)
         {
-            achievementIcon.sprite = data.icon;
+            if (isUnlocked && data.icon != null)
+            {
+                achievementIcon.sprite = data.icon;
+            }
+            else
+            {
+                // Используем дефолтную иконку для неразблокированных
+                achievementIcon.sprite = AchievementManager.Instance.defaultLockedIcon;
+            }
         }
 
         TextMeshProUGUI titleText = item.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
@@ -150,7 +208,15 @@ public class AchievementsUI : MonoBehaviour
         TextMeshProUGUI descText = item.transform.Find("DescriptionText")?.GetComponent<TextMeshProUGUI>();
         if (descText != null)
         {
-            descText.text = isUnlocked ? data.description : "???";
+            if (data.isRecordAchievement)
+            {
+                int currentRecord = AchievementManager.Instance.GetBestScore();
+                descText.text = $"Ваш рекорд: {currentRecord}";
+            }
+            else
+            {
+                descText.text = isUnlocked ? data.description : "???";
+            }
         }
 
         return item;

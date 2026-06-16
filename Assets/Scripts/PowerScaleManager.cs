@@ -111,6 +111,12 @@ public class PowerScaleManager : MonoBehaviour
     {
         ChangeFillAmount(fileFolderOnShelfAdd, $"Папки на полке: +{fileFolderOnShelfAdd * 100}%");
     }
+    [Header("Настройки заполнения - ПЕРЕГРУЗКА КОМПЬЮТЕРА")]
+    public float computerOverloadRemove = 0.2f;
+    public void RemoveComputerOverloaded()
+    {
+        ChangeFillAmount(-computerOverloadRemove, $"Перегрузка компьютера: -{computerOverloadRemove * 100}%");
+    }
 
     [Header("UI элементы")]
     public Slider powerScaleSlider;
@@ -287,24 +293,30 @@ public class PowerScaleManager : MonoBehaviour
         }
 
         UpdateUI();
-        
+
 
         if (change > 0)
         {
-            if (increaseEffect != null)
-                increaseEffect.Play();
-            if (increaseSound != null && audioSource != null)
-                audioSource.PlayOneShot(increaseSound);
+            if (increaseEffect != null) increaseEffect.Play();
+            if (increaseSound != null)
+            {
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlayPositiveSound(increaseSound);
+                else if (audioSource != null)
+                    AudioManager.Instance.PlayPositiveSound(increaseSound);
+            }
         }
         else if (change < 0)
         {
-            if (decreaseEffect != null)
-                decreaseEffect.Play();
-            if (decreaseSound != null && audioSource != null)
-                audioSource.PlayOneShot(decreaseSound);
+            if (decreaseEffect != null) decreaseEffect.Play();
+            if (decreaseSound != null)
+            {
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlayNegativeSound(decreaseSound);
+                else if (audioSource != null)
+                    AudioManager.Instance.PlayPositiveSound(increaseSound);
+            }
         }
-
-        Debug.Log($"{message} | Всего: {currentFillAmount * 100}%");
     }
 
     private void ActivatePower()
@@ -315,8 +327,13 @@ public class PowerScaleManager : MonoBehaviour
         OnPowerReady?.Invoke();  // <-- эта строка должна быть
 
         if (fullScaleEffect != null) fullScaleEffect.Play();
-        if (fullScaleSound != null && audioSource != null)
-            audioSource.PlayOneShot(fullScaleSound);
+        if (fullScaleSound != null)
+        {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayPositiveSound(fullScaleSound);
+            else if (audioSource != null)
+                AudioManager.Instance.PlayPositiveSound(fullScaleSound);
+        }
     }
 
     public void UsePower()
@@ -351,9 +368,9 @@ public class PowerScaleManager : MonoBehaviour
 
             int bottomLineY = 0;
             bool lineHasBlocks = false;
-
-            // Сначала удаляем блоки на нижней строке
-            for (int x = 0; x < 10; x++)
+            if (GameManager.Instance != null)
+                // Сначала удаляем блоки на нижней строке
+                for (int x = 0; x < 10; x++)
             {
                 if (grid[x, bottomLineY] != null)
                 {
@@ -361,6 +378,7 @@ public class PowerScaleManager : MonoBehaviour
                     Destroy(grid[x, bottomLineY]);
                     grid[x, bottomLineY] = null;
                 }
+
             }
 
             if (lineHasBlocks)

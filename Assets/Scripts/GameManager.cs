@@ -28,6 +28,39 @@ public class GameManager : MonoBehaviour
     [Header("Префабы фигур")]
     public GameObject[] shapePrefabs;
 
+    [Header("Настройки баланса фигур")]
+    [Range(0f, 1f)] public float classicShapeChance = 0.6f; // 60% классические, 40% предметные
+    public List<GameObject> classicShapePrefabs;   // заполните вручную в инспекторе
+    public List<GameObject> itemShapePrefabs;      // заполните вручную в инспекторе
+    private List<int> recentClassicIndices = new List<int>();
+    private List<int> recentItemIndices = new List<int>();
+    private int maxHistory = 3;
+    private GameObject nextShapePrefab;            // для хранения следующей фигуры
+
+    [Header("Баланс взаимодействий")]
+    public float interactionBonusWeight = 3f; // во сколько раз выше шанс для взаимодействующей фигуры
+    private string lastItemShapeName;         // имя последней выпавшей предметной фигуры
+
+
+    // Словарь: ключ - имя фигуры, значение - список фигур, с которыми она взаимодействует (повышенный шанс)
+    private Dictionary<string, List<string>> interactionBonus = new Dictionary<string, List<string>>();
+
+    void InitInteractionBonus()
+    {
+        interactionBonus.Clear();
+
+        interactionBonus["ShelfItem"] = new List<string> { "FileFolderItem" };
+        interactionBonus["EmptyPencilCupItem"] = new List<string> { "LoosePencilsItem" };
+        interactionBonus["EmptyCupItem"] = new List<string> { "LoosePencilsItem" };
+        interactionBonus["TableItem"] = new List<string> { "ComputerItem", "CupItem", "BookStackItem", "PlantItem", "LampItem", "PrinterItem" };
+        interactionBonus["ComputerItem"] = new List<string> { "CupItem" };
+        interactionBonus["BookStackItem"] = new List<string> { "BookStackItem", "CupItem" };
+        interactionBonus["ChairItemL"] = new List<string> { "BookStackItem", "CupItem" };
+        interactionBonus["ChairItemJ"] = new List<string> { "BookStackItem", "CupItem" };
+        interactionBonus["LampItem"] = new List<string> { "PlantItem" };
+        interactionBonus["PlantItem"] = new List<string> { "LampItem" };
+    }
+
     [Header("Настройки предпросмотра для предметных фигур")]
     public List<ShapePreviewSettings> shapePreviewSettings = new List<ShapePreviewSettings>();
 
@@ -74,6 +107,30 @@ public class GameManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+        // Принудительная инициализация списков, если они не назначены в инспекторе
+        if (shapePrefabs == null || shapePrefabs.Length == 0)
+        {
+            Debug.LogError("В GameManager не назначены префабы фигур! Игра не может работать.");
+            return;
+        }
+
+        if (classicShapePrefabs == null) classicShapePrefabs = new List<GameObject>();
+        if (itemShapePrefabs == null) itemShapePrefabs = new List<GameObject>();
+
+        if (classicShapePrefabs.Count == 0 && itemShapePrefabs.Count == 0)
+        {
+            foreach (var prefab in shapePrefabs)
+            {
+                if (prefab == null) continue;
+                TetrisShape shape = prefab.GetComponent<TetrisShape>();
+                string typeName = shape != null ? shape.GetShapeTypeName() : "";
+                if (string.IsNullOrEmpty(typeName))
+                    classicShapePrefabs.Add(prefab);
+                else
+                    itemShapePrefabs.Add(prefab);
+            }
+        }
     }
 
     private int blocksToSkip = 0;
@@ -174,6 +231,21 @@ public class GameManager : MonoBehaviour
 
         // Инициализация справки - ТОЛЬКО если была нажата кнопка "Играть с ПК"
         InitializeControls();
+        if (classicShapePrefabs.Count == 0 && itemShapePrefabs.Count == 0 && shapePrefabs.Length > 0)
+        {
+            foreach (var prefab in shapePrefabs)
+            {
+                TetrisShape shape = prefab.GetComponent<TetrisShape>();
+                string typeName = shape != null ? shape.GetShapeTypeName() : "";
+                if (string.IsNullOrEmpty(typeName))
+                    classicShapePrefabs.Add(prefab);
+                else
+                    itemShapePrefabs.Add(prefab);
+            }
+            Debug.Log($"Classic shapes: {classicShapePrefabs.Count}, Item shapes: {itemShapePrefabs.Count}");
+        }
+        // ВЫЗОВИТЕ ИНИЦИАЛИЗАЦИЮ СЛОВАРЯ
+        InitInteractionBonus();
 
         UpdateScoreUI();
         GenerateNextShape();
@@ -409,44 +481,193 @@ public class GameManager : MonoBehaviour
     void GenerateNextShape()
     {
         if (nextShape != null)
-        {
             Destroy(nextShape.gameObject);
+
+        GameObject selectedPrefab = null;
+        bool isClassic = Random.value < classicShapeChance;
+
+        // Проверяем, есть ли вообще префабы
+        if (shapePrefabs == null || shapePrefabs.Length == 0)
+        {
+            Debug.LogError("shapePrefabs не назначен или пуст! Игра не может продолжаться.");
+            return;
         }
 
-        nextShapeIndex = Random.Range(0, shapePrefabs.Length);
-        GameObject nextShapePrefab = shapePrefabs[nextShapeIndex];
-
-        GameObject nextShapeObj = Instantiate(nextShapePrefab);
-        nextShape = nextShapeObj.GetComponent<TetrisShape>();
-
-        nextShape.InitializeShape();
-        nextShape.enabled = false;
-
-        string shapeTypeName = nextShape.GetShapeTypeName();
-
-        if (!string.IsNullOrEmpty(shapeTypeName))
+        // Выбор фигуры
+        if (isClassic && classicShapePrefabs != null && classicShapePrefabs.Count > 0)
         {
-            ShapePreviewSettings settings = GetPreviewSettingsForShape(shapeTypeName);
-            if (settings != null)
+            selectedPrefab = GetNonRepeatingShape(classicShapePrefabs, recentClassicIndices, true);
+            if (selectedPrefab == null && classicShapePrefabs.Count > 0)
+                selectedPrefab = classicShapePrefabs[0]; // запасной вариант
+        }
+        else if (!isClassic && itemShapePrefabs != null && itemShapePrefabs.Count > 0)
+        {
+            int selectedIndex = GetWeightedItemShapeIndex(itemShapePrefabs, recentItemIndices, true, lastItemShapeName);
+            if (selectedIndex >= 0)
             {
-                SetupShapePreview(nextShape, settings.previewPosition, settings.previewScale);
-                Debug.Log($"Предпросмотр для предметной фигуры {shapeTypeName}: позиция={settings.previewPosition}, масштаб={settings.previewScale}");
+                selectedPrefab = itemShapePrefabs[selectedIndex];
+                recentItemIndices.Add(selectedIndex);
+                if (recentItemIndices.Count > maxHistory)
+                    recentItemIndices.RemoveAt(0);
             }
             else
             {
-                SetupShapePreview(nextShape, defaultPreviewPosition, defaultPreviewScale);
-                Debug.Log($"Предпросмотр для предметной фигуры {shapeTypeName}: настройки не найдены, используем по умолчанию");
+                selectedPrefab = itemShapePrefabs[Random.Range(0, itemShapePrefabs.Count)];
+            }
+
+            if (selectedPrefab != null)
+            {
+                TetrisShape shapeComp = selectedPrefab.GetComponent<TetrisShape>();
+                string selectedTypeName = shapeComp != null ? shapeComp.GetShapeTypeName() : "";
+                lastItemShapeName = string.IsNullOrEmpty(selectedTypeName) ? null : selectedTypeName;
             }
         }
         else
         {
-            SetupShapePreview(nextShape, defaultPreviewPosition, defaultPreviewScale);
-            Debug.Log($"Предпросмотр для классической фигуры");
+            // fallback на общий массив
+            selectedPrefab = shapePrefabs[Random.Range(0, shapePrefabs.Length)];
         }
 
+        // Критическая проверка
+        if (selectedPrefab == null)
+        {
+            Debug.LogError($"Невозможно выбрать фигуру! classicPrefabs: {(classicShapePrefabs != null ? classicShapePrefabs.Count : 0)}, itemPrefabs: {(itemShapePrefabs != null ? itemShapePrefabs.Count : 0)}, shapePrefabs: {(shapePrefabs != null ? shapePrefabs.Length : 0)}");
+            return;
+        }
+
+        nextShapePrefab = selectedPrefab;
+
+        // Создаём объект для предпросмотра
+        GameObject nextShapeObj = Instantiate(nextShapePrefab);
+        if (nextShapeObj == null)
+        {
+            Debug.LogError($"Не удалось создать объект из префаба: {nextShapePrefab.name}");
+            return;
+        }
+
+        nextShape = nextShapeObj.GetComponent<TetrisShape>();
+        if (nextShape == null)
+        {
+            Debug.LogError($"У созданного объекта {nextShapeObj.name} нет компонента TetrisShape!");
+            Destroy(nextShapeObj);
+            return;
+        }
+
+        nextShape.InitializeShape();
+        nextShape.enabled = false;
+
+        // ---- Настройка предпросмотра ----
+        string shapeTypeName = nextShape.GetShapeTypeName();
+        if (!string.IsNullOrEmpty(shapeTypeName))
+        {
+            ShapePreviewSettings settings = GetPreviewSettingsForShape(shapeTypeName);
+            if (settings != null)
+                SetupShapePreview(nextShape, settings.previewPosition, settings.previewScale);
+            else
+                SetupShapePreview(nextShape, defaultPreviewPosition, defaultPreviewScale);
+        }
+        else
+        {
+            SetupShapePreview(nextShape, defaultPreviewPosition, defaultPreviewScale);
+        }
         SetShapeBrightness(nextShape, 1.2f);
     }
 
+    GameObject GetNonRepeatingShape(List<GameObject> prefabs, List<int> recentIndices, bool allowRepeatForBooks)
+    {
+        if (prefabs.Count == 0) return null;
+
+        List<int> availableIndices = new List<int>();
+        for (int i = 0; i < prefabs.Count; i++)
+        {
+            GameObject prefab = prefabs[i];
+            TetrisShape shape = prefab.GetComponent<TetrisShape>();
+            string typeName = shape != null ? shape.GetShapeTypeName() : "";
+
+            // Книги можно повторять всегда
+            if (allowRepeatForBooks && typeName == "BookStackItem")
+            {
+                availableIndices.Add(i);
+                continue;
+            }
+
+            if (!recentIndices.Contains(i))
+                availableIndices.Add(i);
+        }
+
+        if (availableIndices.Count == 0)
+        {
+            for (int i = 0; i < prefabs.Count; i++)
+                availableIndices.Add(i);
+        }
+
+        int selected = availableIndices[Random.Range(0, availableIndices.Count)];
+        recentIndices.Add(selected);
+        if (recentIndices.Count > maxHistory)
+            recentIndices.RemoveAt(0);
+
+        return prefabs[selected];
+    }
+    int GetWeightedItemShapeIndex(List<GameObject> prefabs, List<int> recentIndices, bool allowRepeatForBooks, string lastShape)
+    {
+        if (prefabs.Count == 0) return -1;
+
+        List<int> availableIndices = new List<int>();
+        List<float> weights = new List<float>();
+
+        for (int i = 0; i < prefabs.Count; i++)
+        {
+            GameObject prefab = prefabs[i];
+            TetrisShape shape = prefab.GetComponent<TetrisShape>();
+            string typeName = shape != null ? shape.GetShapeTypeName() : "";
+
+            // Проверка на повтор (книги можно повторять)
+            bool isBook = (typeName == "BookStackItem");
+            if (!allowRepeatForBooks || !isBook)
+            {
+                if (recentIndices.Contains(i))
+                    continue; // недавно была – пропускаем
+            }
+
+            availableIndices.Add(i);
+            float weight = 1f;
+
+            // Бонус за взаимодействие с последней фигурой
+            if (!string.IsNullOrEmpty(lastShape) && interactionBonus.ContainsKey(lastShape))
+            {
+                if (interactionBonus[lastShape].Contains(typeName))
+                    weight = interactionBonusWeight;
+            }
+
+            weights.Add(weight);
+        }
+
+        if (availableIndices.Count == 0)
+        {
+            // если все заблокированы, берём все (кроме повторов, но без бонуса)
+            for (int i = 0; i < prefabs.Count; i++)
+            {
+                availableIndices.Add(i);
+                weights.Add(1f);
+            }
+        }
+
+        // Взвешенный случайный выбор
+        float totalWeight = 0f;
+        foreach (float w in weights) totalWeight += w;
+        float rand = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+        for (int j = 0; j < availableIndices.Count; j++)
+        {
+            cumulative += weights[j];
+            if (rand <= cumulative)
+            {
+                int selectedIndex = availableIndices[j];
+                return selectedIndex;
+            }
+        }
+        return availableIndices[0];
+    }
     void SetupShapePreview(TetrisShape shape, Vector3 previewPosition, float previewScale)
     {
         if (fieldGrid != null)
@@ -530,7 +751,7 @@ public class GameManager : MonoBehaviour
 
         if (shapePrefabs.Length == 0) return;
 
-        GameObject shapeToSpawn = shapePrefabs[nextShapeIndex];
+        GameObject shapeToSpawn = nextShapePrefab;
         GameObject newShapeObj = Instantiate(shapeToSpawn);
         currentShape = newShapeObj.GetComponent<TetrisShape>();
         currentShape.SetFieldGrid(fieldGrid);
@@ -614,6 +835,8 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
+        lastItemShapeName = null;
+
         Debug.Log("ПЕРЕЗАПУСК ИГРЫ");
         Time.timeScale = 1f;
 
@@ -660,6 +883,9 @@ public class GameManager : MonoBehaviour
         fallTimer = 0f;
 
         StartGame();
+
+        recentClassicIndices.Clear();
+        recentItemIndices.Clear();
     }
 
     void AddScore(int lines)
@@ -676,8 +902,14 @@ public class GameManager : MonoBehaviour
         score += points;
         linesCleared += lines;
 
-        UpdateScoreUI();
+        
 
+        // === ПРОВЕРКА РЕКОРДА ===
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.CheckHighScore(score);
+        }
+        UpdateScoreUI();
         Debug.Log($"Очков: +{points} | Всего: {score} | Линий: {linesCleared}");
     }
 
@@ -858,5 +1090,6 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log($"Всего добавлено {shapePreviewSettings.Count} настроек для предметных фигур");
+
     }
 }

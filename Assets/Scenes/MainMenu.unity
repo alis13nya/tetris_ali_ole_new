@@ -464,7 +464,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85053a9fad71d20438a8377a2d8b1eec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
+  defaultLockedIcon: {fileID: -4786212468642169599, guid: 355baabf2e77d3f4ea61e860ffe2c569, type: 3}
   allAchievements:
+  - {fileID: 11400000, guid: f71ce17563e41574b80222ecc4ea4316, type: 2}
   - {fileID: 11400000, guid: 8a0270dbb6f5cd34ca39a6e090b65f68, type: 2}
   - {fileID: 11400000, guid: 15d79774c47cb2946a3b8148b9896a4b, type: 2}
   - {fileID: 11400000, guid: 513112e4c5bec2e4cbeddaebc5172dd8, type: 2}
@@ -492,6 +494,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0926976231c169c4a874e11e1f1841e9, type: 2}
   - {fileID: 11400000, guid: 039872cc67ac3664fb9eed368c6e275c, type: 2}
   - {fileID: 11400000, guid: ba2a24e31f48dae4f87d971de842abb8, type: 2}
+  - {fileID: 11400000, guid: e0dbbd608c281564b8d522c699c3e56b, type: 2}
 --- !u!4 &139722797
 Transform:
   m_ObjectHideFlags: 0
@@ -1431,8 +1434,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4286019448
+  m_fontColor: {r: 0.4716981, g: 0.46502313, b: 0.46502313, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1449,13 +1452,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 9
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -2272,7 +2275,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 480, y: 940}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1323171959
 MonoBehaviour:
@@ -2338,7 +2341,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -6471630249234485036, guid: 4b6a7f3bae6780b4cb626a73125c9d08, type: 3}
+  m_Sprite: {fileID: 4339570594323708475, guid: f1f0254e7cfa4ba498dcdad516a19e7f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3007,7 +3010,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -940}
-  m_SizeDelta: {x: 400, y: 100}
+  m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1786612974
 MonoBehaviour:
